@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "../src/ConfidentialLedger.sol";
-import "forge-std/Script.sol";
+import {ConfidentialLedger} from "../src/ConfidentialLedger.sol";
+import {Script} from "forge-std/Script.sol";
 
 contract DeployLedger is Script {
     function run() external {

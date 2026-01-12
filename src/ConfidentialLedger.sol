@@ -35,4 +35,33 @@ function registerAccount(uint256 _x, uint256 _y) external {
     });
 }
 
+/// @notice Represents a confidential transfer request
+struct Transfer {
+    address from;
+    address to;
+    uint256 valueCommitmentX;
+    uint256 valueCommitmentY;
+    bytes proof;        // placeholder for ZK proof
+    bool approved;      // set by trusted verifier
+}
+
+/// @notice Incremental transfer ID
+uint256 public nextTransferId;
+
+/// @notice Pending transfers awaiting verification
+mapping(uint256 => Transfer) public pendingTransfers;
+
+/// @notice Submit a confidential transfer for off-chain verification
+function submitTransfer(address _to, uint256 _valueCommitmentX, uint256 _valueCommitmentY, bytes calldata _proof) external returns (uint256 transferId) {
+    transferId = nextTransferId++;
+
+    pendingTransfers[transferId] = Transfer({
+        from: msg.sender,
+        to: _to,
+        valueCommitmentX: _valueCommitmentX,
+        valueCommitmentY: _valueCommitmentY,
+        proof: _proof,
+        approved: false
+    });
+}
 }
