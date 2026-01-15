@@ -14,6 +14,17 @@ contract ConfidentialLedger {
         trustedVerifier = _trustedVerifier;
     }
 
+    modifier onlyTrustedVerifier() {
+        require(msg.sender == trustedVerifier, "Only trusted verifier can call this function");
+        _;
+    }
+
+    function approveTransfer(uint256 _transferId) public onlyTrustedVerifier {
+        Transfer storage t = pendingTransfers[_transferId];
+        require(!t.approved, "Transfer already approved");
+        t.approved = true;
+    }
+
 /// @notice Represents a balance commitment
 struct Commitment {
     uint256 x;  // Pedersen commitment X coordinate
