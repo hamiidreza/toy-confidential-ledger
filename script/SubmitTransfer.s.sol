@@ -11,7 +11,7 @@ contract SubmitTransfer is Script {
         address ledgerAddress = vm.envAddress("LEDGER_ADDRESS");
 
         // Parameters for transfer
-        address to = vm.addr(1);
+        address to = 0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC;
         uint256 valueCommitmentX = 1111;
         uint256 valueCommitmentY = 2222;
         bytes memory proof = hex"1234";
