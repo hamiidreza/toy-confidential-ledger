@@ -20,7 +20,8 @@ contract SubmitTransfer is Script {
         vm.startBroadcast();
 
         // Submit transfer
-        uint256 transferId = ConfidentialLedger(ledgerAddress).submitTransfer(to, valueCommitmentX, valueCommitmentY, proof);
+        uint256 transferId =
+            ConfidentialLedger(ledgerAddress).submitTransfer(to, valueCommitmentX, valueCommitmentY, proof);
         vm.stopBroadcast();
 
         // Log result

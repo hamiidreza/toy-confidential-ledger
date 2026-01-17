@@ -4,6 +4,7 @@ pragma solidity ^0.8.20;
 import {EllipticCurve} from "lib/elliptic-curve-solidity/contracts/EllipticCurve.sol";
 
 uint256 constant AA = 0;
+uint256 constant BB = 7;
 uint256 constant PP = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F;
 
 // Generator G
@@ -27,24 +28,13 @@ contract ConfidentialLedger {
         trustedVerifier = _trustedVerifier;
     }
 
-    modifier onlyTrustedVerifier() {
-        require(msg.sender == trustedVerifier, "Only trusted verifier can call this function");
-        _;
-    }
-
-    function approveTransfer(uint256 _transferId) public onlyTrustedVerifier {
-        Transfer storage t = pendingTransfers[_transferId];
-        require(!t.approved, "Transfer already approved");
-        t.approved = true;
-    }
-
     /// @notice Represents a balance commitment
     struct Commitment {
         uint256 x; // Pedersen commitment X coordinate
         uint256 y; // Pedersen commitment Y coordinate
     }
 
-    function PedersenCommitment(uint256 _value, uint256 _rand) internal pure returns (Commitment memory) {
+    function pedersenCommitment(uint256 _value, uint256 _rand) internal pure returns (Commitment memory) {
         (uint256 _valueX, uint256 _valueY) = EllipticCurve.ecMul(_value, GX, GY, AA, PP);
         (uint256 _randX, uint256 _randY) = EllipticCurve.ecMul(_rand, HX, HY, AA, PP);
         (uint256 _commitmentX, uint256 _commitmentY) = EllipticCurve.ecAdd(_valueX, _valueY, _randX, _randY, AA, PP);
@@ -105,4 +95,63 @@ contract ConfidentialLedger {
             approved: false
         });
     }
+
+    modifier onlyTrustedVerifier() {
+        _onlyTrustedVerifier();
+        _;
+    }
+
+    function _onlyTrustedVerifier() internal view {
+        require(msg.sender == trustedVerifier, "Only trusted verifier can call this function");
+    }
+
+    function approveTransfer(uint256 _transferId) public onlyTrustedVerifier {
+        Transfer storage t = pendingTransfers[_transferId];
+        require(!t.approved, "Transfer already approved");
+        t.approved = true;
+    }
+
+    /// @notice Execute a verified transfer by updating commitments
+    /// @param transferId The ID of the approved transfer
+    function executeTransfer(uint256 transferId) external {
+        Transfer storage t = pendingTransfers[transferId];
+        require(t.approved, "Transfer not approved yet");
+        require(t.from != address(0), "Invalid sender address");
+        require(t.to != address(0), "Invalid receiver address");
+
+        Commitment storage senderCommitment = commitments[t.from];
+        Commitment storage receiverCommitment = commitments[t.to];
+
+        require(senderCommitment.x != 0 && senderCommitment.y != 0, "Sender not registered");
+        require(receiverCommitment.x != 0 && receiverCommitment.y != 0, "Receiver not registered");
+
+        require(
+            EllipticCurve.isOnCurve(senderCommitment.x, senderCommitment.y, AA, BB, PP),
+            "Sender commitment not on curve!"
+        );
+
+        require(
+            EllipticCurve.isOnCurve(receiverCommitment.x, receiverCommitment.y, AA, BB, PP),
+            "Receiver commitment not on curve!"
+        );
+
+        // Build the transfer value commitment
+        Commitment memory valueCommitment = Commitment({x: t.valueCommitmentX, y: t.valueCommitmentY});
+        require(
+            EllipticCurve.isOnCurve(valueCommitment.x, valueCommitment.y, AA, BB, PP), "value commitment not on curve!"
+        );
+
+        // Homomorphic updates
+        (senderCommitment.x, senderCommitment.y) =
+            EllipticCurve.ecSub(senderCommitment.x, senderCommitment.y, valueCommitment.x, valueCommitment.y, AA, PP);
+        (receiverCommitment.x, receiverCommitment.y) = EllipticCurve.ecAdd(
+            receiverCommitment.x, receiverCommitment.y, valueCommitment.x, valueCommitment.y, AA, PP
+        );
+
+        delete pendingTransfers[transferId];
+        emit TransferExecuted(transferId, t.from, t.to);
+    }
+
+    /// @notice Emitted when a transfer is executed
+    event TransferExecuted(uint256 indexed transferId, address indexed from, address indexed to);
 }
