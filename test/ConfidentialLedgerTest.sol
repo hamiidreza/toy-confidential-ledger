@@ -4,7 +4,7 @@ pragma solidity ^0.8.20;
 
 import {Test} from "forge-std/Test.sol";
 import {ConfidentialLedger} from "../src/ConfidentialLedger.sol";
-import {EllipticCurve} from "elliptic-curve-solidity/contracts/EllipticCurve.sol";
+import {EllipticCurve} from "lib/elliptic-curve-solidity/contracts/EllipticCurve.sol";
 
 contract ConfidentialLedgerTest is Test {
     ConfidentialLedger ledger;
@@ -78,5 +78,34 @@ contract ConfidentialLedgerTest is Test {
         // Approve transfer (by trusted verifier)
         vm.prank(verifier);
         ledger.approveTransfer(transferId);
+
+        // Execute transfer
+        ledger.executeTransfer(transferId);
+
+        // Check balances
+        (uint256 aliceX, uint256 aliceY) = ledger.commitments(alice);
+        ConfidentialLedger.Commitment memory aliceFinal = ConfidentialLedger.Commitment(aliceX, aliceY);
+
+        (uint256 bobX, uint256 bobY) = ledger.commitments(bob);
+        ConfidentialLedger.Commitment memory bobFinal = ConfidentialLedger.Commitment(bobX, bobY);
+
+        // sanity check (commitments are on curve)
+        require(EllipticCurve.isOnCurve(aliceFinal.x, aliceFinal.y, AA, BB, PP), "Alice final not on curve");
+        require(EllipticCurve.isOnCurve(bobFinal.x, bobFinal.y, AA, BB, PP), "Bob final not on curve");
+
+        // Compute expected final commitments for Alice
+        uint256 expectedAliceV = 80; // 100 - 20
+        uint256 expectedAliceR = 35; // 42 - 7
+        ConfidentialLedger.Commitment memory expectedAlice = pedersenCommitOffchain(expectedAliceV, expectedAliceR);
+
+        // Compute expected final commitments for Bob
+        uint256 expectedBobV = 70; // 50 + 20
+        uint256 expectedBobR = 106; // 99 + 7
+        ConfidentialLedger.Commitment memory expectedBob = pedersenCommitOffchain(expectedBobV, expectedBobR);
+
+        assertEq(aliceFinal.x, expectedAlice.x, "Alice commitment X mismatch");
+        assertEq(aliceFinal.y, expectedAlice.y, "Alice commitment Y mismatch");
+        assertEq(bobFinal.x, expectedBob.x, "Bob commitment X mismatch");
+        assertEq(bobFinal.y, expectedBob.y, "Bob commitment Y mismatch");
     }
 }
