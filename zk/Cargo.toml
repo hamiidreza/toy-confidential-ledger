@@ -8,4 +8,4 @@ bulletproofs = "5"
 curve25519-dalek = "4"
 merlin = "3"
 rand = "0.8"
-ethers = { version = "2", features = ["abigen"] }
+byteorder = "1.5"
