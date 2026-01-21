@@ -1,4 +1,5 @@
 mod bulletproof;
+mod verifier;
 
 use curve25519_dalek::scalar::Scalar;
 use rand::thread_rng;
