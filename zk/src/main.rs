@@ -1,5 +1,6 @@
 mod bulletproof;
-mod verifier;
+mod sigma;
+mod trusted_verifier;
 
 use curve25519_dalek::scalar::Scalar;
 use rand::thread_rng;
@@ -30,7 +31,7 @@ fn main() {
     proof_bytes.extend_from_slice(&(proof_u.to_bytes().len() as u32).to_le_bytes());
     proof_bytes.extend_from_slice(&proof_u.to_bytes());
 
-    let ok = verifier::verify_transfer(&proof_bytes, c_b, c_v);
+    let ok = trusted_verifier::verify_transfer(&proof_bytes, c_b, c_v);
 
     println!("Transfer valid: {}", ok);
 }
