@@ -1,5 +1,4 @@
 mod bulletproof;
-mod sigma;
 mod trusted_verifier;
 
 use curve25519_dalek::scalar::Scalar;
