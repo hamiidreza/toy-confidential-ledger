@@ -4,21 +4,9 @@ pragma solidity ^0.8.20;
 
 import {Test} from "forge-std/Test.sol";
 import {ConfidentialLedger} from "../src/ConfidentialLedger.sol";
-import {EllipticCurve} from "lib/elliptic-curve-solidity/contracts/EllipticCurve.sol";
 
 contract ConfidentialLedgerTest is Test {
     ConfidentialLedger ledger;
-
-    // Toy secp256k1 parameters (should match the contract)
-    uint256 constant AA = 0;
-    uint256 constant BB = 7;
-    uint256 constant PP = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F;
-
-    uint256 constant GX = 55066263022277343669578718895168534326250603453777594175500187360389116729240;
-    uint256 constant GY = 32670510020758816978083085130507043184471273380659243275938904335757337482424;
-
-    uint256 constant HX = 89565891926547004231252920425935692360644145829622209833684329913297188986597;
-    uint256 constant HY = 12158399299693830322967808612713398636155367887041628176798871954788371653930;
 
     address verifier;
     address alice;
@@ -32,17 +20,6 @@ contract ConfidentialLedgerTest is Test {
 
         // Deploy ledger with verifier
         ledger = new ConfidentialLedger(verifier);
-    }
-
-    function pedersenCommitOffchain(uint256 _value, uint256 _rand)
-        internal
-        pure
-        returns (ConfidentialLedger.Commitment memory)
-    {
-        (uint256 _valueX, uint256 _valueY) = EllipticCurve.ecMul(_value, GX, GY, AA, PP);
-        (uint256 _randX, uint256 _randY) = EllipticCurve.ecMul(_rand, HX, HY, AA, PP);
-        (uint256 _commitmentX, uint256 _commitmentY) = EllipticCurve.ecAdd(_valueX, _valueY, _randX, _randY, AA, PP);
-        return ConfidentialLedger.Commitment({x: _commitmentX, y: _commitmentY});
     }
 
     function testTransfer() public {

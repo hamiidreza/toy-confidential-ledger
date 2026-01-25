@@ -3,7 +3,7 @@ pragma solidity ^0.8.20;
 
 /// @title Toy Confidential Ledger
 /// @notice Stores opaque balance commitments; all cryptography is verified off-chain
-/// @dev This is a learning project. Do NOT use in production.
+/// @dev This is a learning project and should NOT be used in production.
 contract ConfidentialLedger {
     /// @notice Address of the trusted off-chain proof verifier
     address public trustedVerifier;
@@ -17,7 +17,11 @@ contract ConfidentialLedger {
     /// @notice Maps user addresses to their commitments
     mapping(address => bytes32) public commitments;
 
-    /// @notice Register a new account with an initial commitment
+    /// @notice Register a new account with an initial balance commitment
+    /// @dev The commitment is assumed to encode a deposit value chosen by the user.
+    ///      Correctness of the commitment (e.g., that it commits to the intended
+    ///      deposit amount) is verified offchain by an
+    ///      external component and is out of scope for this contract.
     /// @param _compressed The commitment
     function registerAccount(bytes32 _compressed) external {
         require(commitments[msg.sender] == 0, "Account already registered");
@@ -63,9 +67,11 @@ contract ConfidentialLedger {
         require(msg.sender == trustedVerifier, "Only trusted verifier can call this function");
     }
 
-    /// @notice Approve and execute a confidential transfer atomically
-    /// @dev All cryptographic verification happens off-chain by the trusted verifier
-    function approveAndExecuteTransfer(uint256 _transferId, bytes32 newSenderCommitment, bytes32 newReceiverCommitment)
+    /// @notice Approve and execute a confidential transfer
+    /// @dev All proof verification is performed off-chain by the trusted verifier.
+    ///      A call to this function implies that the verifier has already validated
+    ///      the corresponding proofs. 
+    function approveAndExecuteTransfer(uint256 _transferId)
         external
         onlyTrustedVerifier
     {
@@ -77,16 +83,16 @@ contract ConfidentialLedger {
         require(commitments[t.from] != bytes32(0), "Sender not registered");
         require(commitments[t.to] != bytes32(0), "Receiver not registered");
 
-        // Apply commitment updates
-        commitments[t.from] = newSenderCommitment;
-        commitments[t.to] = newReceiverCommitment;
+        //  TODO: first implement BN254 EC operations!
+        // commitments[t.from] = commitments[t.from] - t.valueCommitment;
+        // commitments[t.to]   = commitments[t.to]   + t.valueCommitment;
 
-        emit TransferExecuted(_transferId, t.from, t.to);
+        emit TransferApproved(_transferId, t.from, t.to, t.valueCommitment);
 
         // Cleanup
         delete pendingTransfers[_transferId];
     }
 
-    /// @notice Emitted when a transfer is executed
-    event TransferExecuted(uint256 indexed transferId, address indexed from, address indexed to);
+    /// @notice Emitted when a transfer is approved
+    event TransferApproved(uint256 indexed transferId, address indexed from, address indexed to, bytes32 valueCommitment);
 }
