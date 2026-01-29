@@ -45,5 +45,22 @@ impl Circuit<Fr> for TransferCircuit {
         Config { b, v, b_prime }
     }
 
-    
+    fn synthesize(
+        &self,
+        config: Config,
+        mut layouter: impl Layouter<Fr>,
+    ) -> Result<(), Error> {
+        layouter.assign_region(
+            || "transfer",
+            |mut region| {
+                region.assign_advice(|| "b", config.b, 0, || self.b)?;
+                region.assign_advice(|| "v", config.v, 0, || self.v)?;
+
+                let b_prime = self.b - self.v;
+                region.assign_advice(|| "b'", config.b_prime, 0, || b_prime)?;
+
+                Ok(())
+            },
+        )
+    }
 }
