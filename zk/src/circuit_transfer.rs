@@ -36,8 +36,7 @@ impl Circuit<Fr> for TransferCircuit {
         let v = meta.advice_column();
         let b_prime = meta.advice_column();
 
-        let v_bits: [Column<Advice>; 64] =
-            std::array::from_fn(|_| meta.advice_column());
+        let v_bits: [Column<Advice>; 64] = std::array::from_fn(|_| meta.advice_column());
 
         meta.create_gate("b' = b - v", |meta| {
             let b = meta.query_advice(b, Rotation::cur());
@@ -63,7 +62,12 @@ impl Circuit<Fr> for TransferCircuit {
             vec![v_val - sum]
         });
 
-        TransferConfig { b, v, b_prime, v_bits }
+        TransferConfig {
+            b,
+            v,
+            b_prime,
+            v_bits,
+        }
     }
 
     fn synthesize(
@@ -100,5 +104,15 @@ impl Circuit<Fr> for TransferCircuit {
         )?;
 
         Ok(())
+    }
+}
+
+impl Default for TransferCircuit {
+    fn default() -> Self {
+        Self {
+            b: Value::unknown(),
+            v: Value::unknown(),
+            v_bits: std::array::from_fn(|_| Value::unknown()),
+        }
     }
 }
