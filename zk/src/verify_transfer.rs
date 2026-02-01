@@ -4,7 +4,7 @@ use halo2_proofs::{
     transcript::{Blake2bRead, Challenge255},
 };
 
-use halo2curves::bn256::{G1Affine, Fr};
+use halo2curves::bn256::{Fr, G1Affine};
 
 use crate::circuit_transfer::TransferCircuit;
 use crate::types::ProofBundle;
@@ -18,21 +18,11 @@ pub fn verify_transfer(bundle: ProofBundle) -> bool {
 
     let vk = keygen_vk(&params, &circuit).expect("vk");
 
-
-    let mut transcript =
-        Blake2bRead::<_, _, Challenge255<_>>::init(&bundle.proof[..]);
+    let mut transcript = Blake2bRead::<_, _, Challenge255<_>>::init(&bundle.proof[..]);
 
     let public_inputs: &[&[&[Fr]]] = &[&[&bundle.public_inputs[..]]];
-    
 
     let strategy = SingleVerifier::new(&params);
 
-    verify_proof(
-        &params,
-        &vk,
-        strategy,
-        &public_inputs,
-        &mut transcript
-    )
-    .is_ok()
+    verify_proof(&params, &vk, strategy, &public_inputs, &mut transcript).is_ok()
 }

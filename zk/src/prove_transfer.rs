@@ -5,7 +5,7 @@ use halo2_proofs::{
     transcript::{Blake2bWrite, Challenge255},
 };
 
-use halo2curves::bn256::{G1Affine, Fr};
+use halo2curves::bn256::{Fr, G1Affine};
 use rand_core::OsRng;
 
 use crate::circuit_transfer::TransferCircuit;
