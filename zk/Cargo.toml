@@ -4,6 +4,11 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-halo2_proofs = "0.3"
-rand_core = "0.6"
-halo2curves = "0.6"
+ark-ec = "0.4"
+ark-ff = "0.4"
+ark-bn254 = "0.4"
+ark-std = "0.4"
+rand = "0.8"
+merlin = "3"
+ark-serialize = "0.4"
+
