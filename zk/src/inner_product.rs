@@ -445,3 +445,71 @@ pub fn inner_product(a: &[Fr], b: &[Fr]) -> Fr {
     }
     sum
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use ark_ff::UniformRand;
+    use rand::thread_rng;
+
+    #[test]
+    fn testinner() {
+        let one = Fr::one();
+
+        let two = Fr::from(2u64);
+        let three = Fr::from(3u64);
+        let eleven = Fr::from(11u64);
+
+        let v = vec![one, two, three];
+        let u = vec![three, one, two];
+        let ip = inner_product(&v, &u);
+        // Tests that <[1,2,3],[3,1,2]> = 11
+        assert!(ip == eleven);
+    }
+
+    #[test]
+    #[allow(non_snake_case)]
+    fn test_inner_product_proof() {
+        let rng = &mut thread_rng();
+        let n = 32 * 16;
+        let mut G_vec = vec![];
+        let mut H_vec = vec![];
+        let mut a_vec = vec![];
+        let mut b_vec = vec![];
+        for _ in 0..n {
+            let g = C::rand(rng);
+            let h = C::rand(rng);
+            let a = Fr::rand(rng);
+            let b = Fr::rand(rng);
+
+            G_vec.push(g);
+            H_vec.push(h);
+            a_vec.push(a);
+            b_vec.push(b);
+        }
+
+        let Q = C::rand(rng);
+        let Q_affine: G1Affine = Q.into_affine();
+        let G_vec_affine: Vec<G1Affine> = G_vec.iter().map(|p| p.into_affine()).collect();
+        let H_vec_affine: Vec<G1Affine> = H_vec.iter().map(|p| p.into_affine()).collect();
+        let P_prime = <C as VariableBaseMSM>::msm(&G_vec_affine, &a_vec).unwrap()
+            + <C as VariableBaseMSM>::msm(&H_vec_affine, &b_vec).unwrap()
+            + Q_affine * &inner_product(&a_vec, &b_vec);
+        let mut transcript = Transcript::new(b"Inner-product test");
+
+        // Producing inner product proof with vector length = n
+        let proof = prove_inner_product(&mut transcript, &G_vec, &H_vec, &Q, &a_vec, &b_vec);
+        assert!(proof.is_some());
+        let proof = proof.unwrap();
+        let mut transcript = Transcript::new(b"Inner-product test");
+
+        assert!(verify_inner_product(
+            &mut transcript,
+            &G_vec,
+            &H_vec,
+            &P_prime,
+            &Q,
+            &proof
+        ))
+    }
+}
