@@ -15,3 +15,9 @@ pub fn transcript_append_element(transcript: &mut Transcript, label: &'static [u
     e.serialize_compressed(&mut buf).unwrap();
     transcript.append_message(label, &buf);
 }
+
+pub fn transcript_append_points(transcript: &mut Transcript, label: &'static [u8], points: &[C]) {
+    for (_, p) in points.iter().enumerate() {
+        transcript_append_point(transcript, &label, p);
+    }
+}
