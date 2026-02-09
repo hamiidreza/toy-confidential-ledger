@@ -1,9 +1,8 @@
+use ark_bn254::Fr;
 use ark_bn254::G1Projective as C;
 use ark_ec::CurveGroup;
 use ark_serialize::CanonicalSerialize;
 use merlin::Transcript;
-use ark_bn254::Fr;
-
 
 pub fn transcript_append_point(transcript: &mut Transcript, label: &'static [u8], p: &C) {
     let mut buf = Vec::new();
