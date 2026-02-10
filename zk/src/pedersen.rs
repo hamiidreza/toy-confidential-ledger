@@ -1,6 +1,5 @@
 /// Bulletproof implemnetation adapted from Concordium Rust library (https://github.com/concordium);
 /// Modified to use Merlin transcript and Arkworks BN254 curves
-
 use ark_bn254::Fr;
 use ark_bn254::{G1Affine, G1Projective as C};
 use ark_ec::{CurveGroup, VariableBaseMSM};
@@ -29,17 +28,6 @@ pub struct VecCommitmentKey {
 }
 
 impl CommitmentKey {
-    pub fn new(g: C, h: C) -> Self {
-        CommitmentKey { g, h }
-    }
-
-    /// Commit to the given value using a freshly generated randomness, and
-    /// return the randomness that was generated.
-    pub fn commit(&self, s: &Fr, csprng: &mut ThreadRng) -> (C, Fr) {
-        let r = Fr::rand(csprng);
-        (self.hide(s, &r), r)
-    }
-
     /// The low-level worker function that actually does the commitment.
     /// The interface is not very type-safe, hence the availability of other
     /// functions.
