@@ -120,33 +120,3 @@ impl VecCommitmentKey {
         VecCommitmentKey { gs, h }
     }
 }
-
-pub struct Generators {
-    pub G_H: Vec<(C, C)>,
-}
-
-impl Generators {
-    /// **Warning** do not use in production!
-    /// This generates a list of generators of a given size for
-    /// testing purposes. For production, generators must be created such that
-    /// discrete logarithms between different generators are not known, which is
-    /// not guaranteed by this function.
-    #[cfg(test)]
-    pub(crate) fn generate(n: usize, csprng: &mut ThreadRng) -> Self {
-        let mut gh = Vec::with_capacity(n);
-        for _ in 0..n {
-            let x = C::rand(csprng);
-            let y = C::rand(csprng);
-            gh.push((x, y));
-        }
-        Self { G_H: gh }
-    }
-
-    /// Returns the prefix of length nm of a given generator.
-    /// This function panics if nm > length of the generator.
-    pub fn take(&self, nm: usize) -> Self {
-        Self {
-            G_H: self.G_H[0..nm].to_vec(),
-        }
-    }
-}

@@ -1,6 +1,5 @@
 /// Bulletproof implemnetation adapted from Concordium Rust library (https://github.com/concordium);
 /// Modified to use Merlin transcript and Arkworks BN254 curves
-
 use ark_bn254::Fr;
 use ark_bn254::{G1Affine, G1Projective as C};
 use ark_ec::{CurveGroup, VariableBaseMSM};
