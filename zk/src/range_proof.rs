@@ -1,6 +1,5 @@
 /// Bulletproof implemnetation adapted from Concordium Rust library (https://github.com/concordium);
 /// Modified to use Merlin transcript and Arkworks BN254 curves
-
 use crate::helper::*;
 use crate::inner_product::*;
 use crate::pedersen::*;
@@ -69,10 +68,10 @@ fn a_L_a_R(v: u64, n: u8) -> (Vec<Fr>, Vec<Fr>) {
 #[allow(non_snake_case)]
 fn two_n_vec(n: u8) -> Vec<Fr> {
     let mut two_n = Vec::with_capacity(usize::from(n));
-    let two_i = Fr::one();
+    let mut two_i = Fr::one();
     for _ in 0..n {
         two_n.push(two_i);
-        two_i.double();
+        two_i.double_in_place();
     }
     two_n
 }
@@ -88,7 +87,7 @@ pub fn prove_given_scalars(
     n: u8,
     m: u8,
     v_vec: &[Fr],
-    gens: &Generators,
+    gens: &Vec<(C, C)>,
     v_keys: &CommitmentKey,
     randomness: &[Fr],
 ) -> Option<RangeProof> {
@@ -130,7 +129,7 @@ pub fn prove(
     n: u8,
     m: u8,
     v_vec: &[u64],
-    gens: &Generators,
+    gens: &Vec<(C, C)>,
     v_keys: &CommitmentKey,
     randomness: &[Fr],
 ) -> Option<RangeProof> {
@@ -144,11 +143,11 @@ pub fn prove(
         return None;
     }
 
-    if gens.G_H.len() < nm {
+    if gens.len() < nm {
         return None;
     }
     // Select generators for vector commitments
-    let (G, H): (Vec<_>, Vec<_>) = gens.G_H.iter().take(nm).cloned().unzip();
+    let (G, H): (Vec<_>, Vec<_>) = gens.iter().take(nm).cloned().unzip();
     // Generator for single commitments
     let B = v_keys.g;
     // Generator for the blinding of commitments
@@ -392,7 +391,7 @@ pub fn prove(
         t2jx2 *= &x2; //TODO: check if mul_assign or add_assign or correct 
         let mut tjx = t_0[j];
         tjx += &t1jx;
-        tjx + &t2jx2;
+        tjx += &t2jx2;
         tx += &tjx;
 
         // tx_j_tilde <- z^2*z_j*v_j_tilde + t_1_j_tilde*x + t_2_j_tilde*x^2
@@ -495,18 +494,18 @@ pub fn verify_efficient(
     n: u8,
     commitments: &[C],
     proof: &RangeProof,
-    gens: &Generators,
+    gens: &Vec<(C, C)>,
     v_keys: &CommitmentKey,
 ) -> Result<(), VerificationError> {
     // Part 1: Setup
     let m = commitments.len();
     let nm = usize::from(n) * m;
     // Check that we have enough generators for vector commitments
-    if gens.G_H.len() < nm {
+    if gens.len() < nm {
         return Err(VerificationError::NotEnoughGenerators);
     }
     // Select generators G, H, B, B_tilde
-    let (G, H): (Vec<_>, Vec<_>) = gens.G_H.iter().take(nm).cloned().unzip();
+    let (G, H): (Vec<_>, Vec<_>) = gens.iter().take(nm).cloned().unzip();
     let B = v_keys.g;
     let B_tilde = v_keys.h;
     // Explicitly add generators and commitment keys to the transcript
@@ -571,10 +570,10 @@ pub fn verify_efficient(
     }
     // ip_1_2_n <- <1,2_nm>
     let mut ip_1_2_n = Fr::zero();
-    let two_i = Fr::one();
+    let mut two_i = Fr::one();
     for _ in 0..usize::from(n) {
         ip_1_2_n.add_assign(&two_i);
-        two_i.double();
+        two_i.double_in_place();
     }
     let mut sum = Fr::zero();
     let mut zj3 = z3;
@@ -690,7 +689,7 @@ pub fn prove_less_than_or_equal(
     n: u8,
     a: u64,
     b: u64,
-    gens: &Generators,
+    gens: &Vec<(C, C)>,
     key: &CommitmentKey,
     randomness_a: &Fr,
     randomness_b: &Fr,
@@ -719,7 +718,7 @@ pub fn verify_less_than_or_equal(
     commitment_a: &C,
     commitment_b: &C,
     proof: &RangeProof,
-    gens: &Generators,
+    gens: &Vec<(C, C)>,
     key: &CommitmentKey,
 ) -> bool {
     let commitment = commitment_b - commitment_a;
@@ -760,7 +759,7 @@ mod tests {
             G_H.push((g, h));
         }
 
-        let gens = Generators { G_H };
+        let gens: Vec<(C, C)> = G_H;
         let B = C::rand(rng);
         let B_tilde = C::rand(rng);
         let key = CommitmentKey { g: B, h: B_tilde };
