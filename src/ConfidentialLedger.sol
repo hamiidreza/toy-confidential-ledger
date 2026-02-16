@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-/// @title Toy Confidential Ledger  (BN254 + off-chain Plonk)
+/// @title Toy Confidential Ledger  (BN254 + off-chain Bulletproof range proofs)
 /// @notice Ledger enforces commitment algebra; ZK proofs verified off-chain
 /// @dev Learning project — NOT production safe
 contract ConfidentialLedger {
@@ -16,7 +16,7 @@ contract ConfidentialLedger {
         address from;
         address to;
         G1Point valueCommitment; // C_v
-        bytes proofBlob; // Plonk proof (opaque to contract)
+        bytes proofBlob; // Bulletproof proof (opaque to contract)
     }
 
     /// @notice Address of the trusted off-chain proof verifier
