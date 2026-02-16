@@ -10,7 +10,7 @@ contract ApproveTransfer is Script {
         ConfidentialLedger ledger = ConfidentialLedger(ledgerAddress);
 
         vm.startBroadcast();
-        ledger.approveTransfer(0);
+        ledger.approveAndExecuteTransfer(0);
         vm.stopBroadcast();
     }
 }

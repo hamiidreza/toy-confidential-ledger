@@ -11,17 +11,16 @@ contract RegisterAccountScript is Script {
         address ledgerAddress = vm.envAddress("LEDGER_ADDRESS");
         ConfidentialLedger ledger = ConfidentialLedger(ledgerAddress);
 
-        // toy commitment values
-        uint256 commitmentX = 1111;
-        uint256 commitmentY = 2222;
+        ConfidentialLedger.G1Point memory commitment =
+            ConfidentialLedger.G1Point({x: 1111, y: 2222});
 
         // Start broadcast
         vm.startBroadcast();
 
-        ledger.registerAccount(commitmentX, commitmentY);
+        ledger.registerAccount(commitment);
 
         vm.stopBroadcast();
 
-        console.log("Account registered with commitmentX:", commitmentX, "commitmentY:", commitmentY);
+        console.log("Account registered");
     }
 }
