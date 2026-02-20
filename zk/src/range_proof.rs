@@ -187,7 +187,6 @@ pub fn prove(
         s_tilde_vec.push(s_j_tilde);
         // convert value to scalar in base field of C
         let v_value = Fr::from(v_vec[j]);
-        //let v_value = Fr::new(v_scalar);
         // generate commitment V_j to value v_j
         let V_j = v_keys.hide(&v_value, v_j_tilde);
         // append commitment V_j to transcript!
@@ -224,9 +223,6 @@ pub fn prove(
         .chain(once(B_tilde))
         .collect();
     // compute A and S comittments using multi exponentiation
-    // let multiexp_alg = C::new_multiexp(&GH_B_tilde);
-    // let A = multiexp_alg.multiexp(&A_scalars);
-    // let S = multiexp_alg.multiexp(&S_scalars);
     let GH_B_tilde_affine: Vec<G1Affine> = GH_B_tilde.iter().map(|p| p.into_affine()).collect();
     let A = <C as VariableBaseMSM>::msm(&GH_B_tilde_affine, &A_scalars).unwrap();
     let S = <C as VariableBaseMSM>::msm(&GH_B_tilde_affine, &S_scalars).unwrap();
