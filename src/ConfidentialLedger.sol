@@ -72,7 +72,19 @@ contract ConfidentialLedger {
 
     /// @dev Basic curve membership check
     function requireValidPoint(G1Point calldata p) internal pure {
-        require(p.x != 0 || p.y != 0, "infinity point");
+        require(p.x < FIELD_MODULUS, "x out of field");
+        require(p.y < FIELD_MODULUS, "y out of field");
+        require(!(p.x == 0 && p.y == 0), "point at infinity");
+
+        // y^2 mod p
+        uint256 lhs = mulmod(p.y, p.y, FIELD_MODULUS);
+
+        // x^3 + 3 mod p
+        uint256 x2 = mulmod(p.x, p.x, FIELD_MODULUS);
+        uint256 x3 = mulmod(x2, p.x, FIELD_MODULUS);
+        uint256 rhs = addmod(x3, 3, FIELD_MODULUS);
+
+        require(lhs == rhs, "point not on curve");
     }
 
     //------------------------ACCOUNT REGISTRATION----------------------------

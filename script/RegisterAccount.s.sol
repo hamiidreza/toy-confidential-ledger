@@ -11,8 +11,7 @@ contract RegisterAccountScript is Script {
         address ledgerAddress = vm.envAddress("LEDGER_ADDRESS");
         ConfidentialLedger ledger = ConfidentialLedger(ledgerAddress);
 
-        ConfidentialLedger.G1Point memory commitment =
-            ConfidentialLedger.G1Point({x: 1111, y: 2222});
+        ConfidentialLedger.G1Point memory commitment = ConfidentialLedger.G1Point({x: 1111, y: 2222});
 
         // Start broadcast
         vm.startBroadcast();

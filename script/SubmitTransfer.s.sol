@@ -12,16 +12,14 @@ contract SubmitTransfer is Script {
 
         // Parameters for transfer
         address to = 0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC;
-        ConfidentialLedger.G1Point memory valueCommitment =
-            ConfidentialLedger.G1Point({x: 1111, y: 2222});
+        ConfidentialLedger.G1Point memory valueCommitment = ConfidentialLedger.G1Point({x: 1111, y: 2222});
         bytes memory proof = hex"1234";
 
         // Broadcast transaction
         vm.startBroadcast();
 
         // Submit transfer
-        uint256 transferId =
-            ConfidentialLedger(ledgerAddress).submitTransfer(to, valueCommitment, proof);
+        uint256 transferId = ConfidentialLedger(ledgerAddress).submitTransfer(to, valueCommitment, proof);
         vm.stopBroadcast();
 
         // Log result
