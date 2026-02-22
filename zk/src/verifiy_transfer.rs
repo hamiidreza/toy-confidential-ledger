@@ -4,8 +4,7 @@ use crate::range_proof::{RangeProof, verify_less_than_or_equal};
 use ark_bn254::G1Projective as C;
 use merlin::Transcript;
 
-fn verify_transfer(
-    transfer_id: u64, // TODO: do we need this?
+pub fn create_transfer_proof(
     gens: &Vec<(C, C)>,
     key: &CommitmentKey,
     n: u8,
