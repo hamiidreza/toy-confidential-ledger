@@ -11,4 +11,5 @@ ark-std = "0.4"
 rand = "0.8"
 merlin = "3"
 ark-serialize = "0.4"
+ethers = "2"
 

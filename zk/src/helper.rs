@@ -24,6 +24,10 @@ pub fn transcript_append_points(transcript: &mut Transcript, label: &'static [u8
     }
 }
 
+pub fn transcript_append_u8(transcript: &mut Transcript, label: &'static [u8], e: &[u8]) {
+    transcript.append_message(label, e);
+}
+
 /// This function is copied from Concordium Rust library (https://github.com/concordium);
 /// This function takes one argument n and returns the
 /// vector (z^j, z^{j+1}, ..., z^{j+n-1}) in F^n for any field F
