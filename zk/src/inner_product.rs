@@ -1,3 +1,4 @@
+use crate::helper::*;
 /// Bulletproof implementation adapted from Concordium Rust library (https://github.com/concordium);
 /// Modified to use Merlin transcript and Arkworks BN254 curves
 use ark_bn254::Fr;
@@ -6,16 +7,56 @@ use ark_ec::{CurveGroup, VariableBaseMSM};
 use ark_ff::Field;
 use ark_ff::PrimeField;
 use ark_ff::{One, Zero};
+use ark_serialize::{CanonicalDeserialize, CanonicalSerialize};
 use merlin::Transcript;
+use std::io::{Cursor, Read};
 use std::ops::{AddAssign, MulAssign, SubAssign};
-
-use crate::helper::*;
 
 /// Inner product proof
 pub struct InnerProductProof {
     pub lr_vec: Vec<(C, C)>,
     pub a: Fr,
     pub b: Fr,
+}
+
+impl InnerProductProof {
+    pub fn to_bytes(&self) -> Vec<u8> {
+        let mut buf = Vec::new();
+
+        let len = self.lr_vec.len() as u32;
+        buf.extend_from_slice(&len.to_be_bytes());
+
+        for (l, r) in &self.lr_vec {
+            l.serialize_compressed(&mut buf).unwrap();
+            r.serialize_compressed(&mut buf).unwrap();
+        }
+
+        self.a.serialize_compressed(&mut buf).unwrap();
+        self.b.serialize_compressed(&mut buf).unwrap();
+
+        buf
+    }
+
+    pub fn from_bytes(bytes: &[u8]) -> Option<Self> {
+        let mut reader = Cursor::new(bytes);
+
+        let mut len_bytes = [0u8; 4];
+        reader.read_exact(&mut len_bytes).ok()?;
+        let len = u32::from_be_bytes(len_bytes) as usize;
+
+        let mut lr_vec = Vec::with_capacity(len);
+
+        for _ in 0..len {
+            let g = C::deserialize_compressed(&mut reader).ok()?;
+            let h = C::deserialize_compressed(&mut reader).ok()?;
+            lr_vec.push((g, h));
+        }
+
+        let a = Fr::deserialize_compressed(&mut reader).ok()?;
+        let b = Fr::deserialize_compressed(&mut reader).ok()?;
+
+        Some(Self { lr_vec, a, b })
+    }
 }
 
 #[allow(non_snake_case)]
