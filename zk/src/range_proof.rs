@@ -1,4 +1,4 @@
-/// Bulletproof implemnetation adapted from Concordium Rust library (https://github.com/concordium);
+/// Bulletproof implementation adapted from Concordium Rust library (https://github.com/concordium);
 /// Modified to use Merlin transcript and Arkworks BN254 curves
 use crate::helper::*;
 use crate::inner_product::*;
@@ -222,7 +222,7 @@ pub fn prove(
         .copied()
         .chain(once(B_tilde))
         .collect();
-    // compute A and S comittments using multi exponentiation
+    // compute A and S commitments using multi exponentiation
     let GH_B_tilde_affine: Vec<G1Affine> = GH_B_tilde.iter().map(|p| p.into_affine()).collect();
     let A = <C as VariableBaseMSM>::msm(&GH_B_tilde_affine, &A_scalars).unwrap();
     let S = <C as VariableBaseMSM>::msm(&GH_B_tilde_affine, &S_scalars).unwrap();
@@ -330,7 +330,7 @@ pub fn prove(
         t_2_tilde.push(t_2_j_tilde);
     }
 
-    // compute commitments T_1 and T_2 for upper coefficents
+    // compute commitments T_1 and T_2 for upper coefficients
     let mut t_1_sum = Fr::zero();
     let mut t_1_tilde_sum = Fr::zero();
     let mut t_2_sum = Fr::zero();
@@ -373,8 +373,8 @@ pub fn prove(
     }
 
     // evaluate t(x) at challenge point x,
-    // compute blinding factor tx_tilde for t(x) evaluation committment,
-    // and compute blinding factor e_tilde for the inner product committment
+    // compute blinding factor tx_tilde for t(x) evaluation commitments,
+    // and compute blinding factor e_tilde for the inner product commitments
     let mut tx: Fr = Fr::zero();
     let mut tx_tilde: Fr = Fr::zero();
     let mut e_tilde: Fr = Fr::zero();
