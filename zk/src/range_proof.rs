@@ -10,12 +10,12 @@ use ark_ff::Field;
 use ark_ff::PrimeField;
 use ark_ff::UniformRand;
 use ark_ff::{One, Zero};
+use ark_serialize::{CanonicalDeserialize, CanonicalSerialize};
 use merlin::Transcript;
 use rand::prelude::ThreadRng;
+use std::io::Cursor;
 use std::iter::once;
 use std::ops::{AddAssign, MulAssign, SubAssign};
-use ark_serialize::{CanonicalDeserialize, CanonicalSerialize};
-use std::io::Cursor;
 
 /// Bulletproof style range proof
 #[allow(non_snake_case)]
@@ -59,6 +59,7 @@ impl RangeProof {
         buf
     }
 
+    #[allow(non_snake_case)]
     pub fn from_bytes(bytes: &[u8]) -> Option<Self> {
         let mut reader = Cursor::new(bytes);
         // Curve points
