@@ -14,6 +14,8 @@ use merlin::Transcript;
 use rand::prelude::ThreadRng;
 use std::iter::once;
 use std::ops::{AddAssign, MulAssign, SubAssign};
+use ark_serialize::{CanonicalDeserialize, CanonicalSerialize};
+use std::io::Cursor;
 
 /// Bulletproof style range proof
 #[allow(non_snake_case)]
@@ -34,6 +36,57 @@ pub struct RangeProof {
     e_tilde: Fr,
     /// Inner product proof
     ip_proof: InnerProductProof,
+}
+
+impl RangeProof {
+    pub fn to_bytes(&self) -> Vec<u8> {
+        let mut buf = Vec::new();
+
+        // Curve points
+        self.A.serialize_compressed(&mut buf).unwrap();
+        self.S.serialize_compressed(&mut buf).unwrap();
+        self.T_1.serialize_compressed(&mut buf).unwrap();
+        self.T_2.serialize_compressed(&mut buf).unwrap();
+
+        // Scalars
+        self.tx.serialize_compressed(&mut buf).unwrap();
+        self.tx_tilde.serialize_compressed(&mut buf).unwrap();
+        self.e_tilde.serialize_compressed(&mut buf).unwrap();
+
+        // Inner product proof
+        buf.extend(self.ip_proof.to_bytes());
+
+        buf
+    }
+
+    pub fn from_bytes(bytes: &[u8]) -> Option<Self> {
+        let mut reader = Cursor::new(bytes);
+        // Curve points
+        let A = C::deserialize_compressed(&mut reader).ok()?;
+        let S = C::deserialize_compressed(&mut reader).ok()?;
+        let T_1 = C::deserialize_compressed(&mut reader).ok()?;
+        let T_2 = C::deserialize_compressed(&mut reader).ok()?;
+
+        // Scalars
+        let tx = Fr::deserialize_compressed(&mut reader).ok()?;
+        let tx_tilde = Fr::deserialize_compressed(&mut reader).ok()?;
+        let e_tilde = Fr::deserialize_compressed(&mut reader).ok()?;
+
+        // Inner product proof
+        let remaining = &bytes[reader.position() as usize..];
+        let ip_proof = InnerProductProof::from_bytes(remaining)?;
+
+        Some(Self {
+            A,
+            S,
+            T_1,
+            T_2,
+            tx,
+            tx_tilde,
+            e_tilde,
+            ip_proof,
+        })
+    }
 }
 
 /// Determine whether the `i`-th bit (counting from least significant) is set in
