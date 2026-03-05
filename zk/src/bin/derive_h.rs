@@ -1,5 +1,4 @@
 use ark_bn254::{Fq, G1Affine};
-use ark_ec::{AffineRepr, CurveGroup};
 use ark_ff::{Field, PrimeField};
 use sha3::{Digest, Keccak256};
 

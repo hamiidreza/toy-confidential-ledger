@@ -1,8 +1,9 @@
-/// Bulletproof implemnetation adapted from Concordium Rust library (https://github.com/concordium);
+/// Bulletproof implementation adapted from Concordium Rust library (https://github.com/concordium);
 /// Modified to use Merlin transcript and Arkworks BN254 curves
-use ark_bn254::Fr;
-use ark_bn254::{G1Affine, G1Projective as C};
+use ark_bn254::{Fq, Fr, G1Affine, G1Projective as C};
+use ark_ec::AffineRepr;
 use ark_ec::{CurveGroup, VariableBaseMSM};
+use ark_ff::MontFp;
 use ark_ff::UniformRand;
 use rand::prelude::ThreadRng;
 
@@ -28,6 +29,22 @@ pub struct VecCommitmentKey {
 }
 
 impl CommitmentKey {
+    pub fn fixed() -> Self {
+        // G = (1,2)
+        let g = G1Affine::new(Fq::from(1u64), Fq::from(2u64)).into_group();
+
+        // H derived from hash-to-curve (bin/derive_h.rs)
+        let hx = MontFp!(
+            "15874583062915680608726096264639934847252182205744433427769184792172832649573"
+        );
+        let hy = MontFp!(
+            "18094243890165305569146610927749331108413006235138910969355226634001094084669"
+        );
+
+        let h = G1Affine::new(hx, hy).into_group();
+        Self { g, h }
+    }
+
     /// The low-level worker function that actually does the commitment.
     /// The interface is not very type-safe, hence the availability of other
     /// functions.
