@@ -46,6 +46,9 @@ contract ConfidentialLedger {
     /// @notice Pending transfers awaiting verification
     mapping(uint256 => Transfer) public pendingTransfers;
 
+    /// @notice Maps user addresses to their registration status
+    mapping(address => bool) public registered;
+
     //------------------------EC OPERATIONS for BN254----------------------------
 
     uint256 constant FIELD_MODULUS = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
@@ -96,10 +99,11 @@ contract ConfidentialLedger {
     ///      external component and is out of scope for this contract.
     /// @param _commitment The commitment
     function registerAccount(G1Point calldata _commitment) external {
-        require(commitments[msg.sender].x == 0, "Account already registered");
+        require(!registered[msg.sender], "Account already registered");
         requireValidPoint(_commitment);
 
         commitments[msg.sender] = _commitment;
+        registered[msg.sender] = true;
     }
 
     //------------------------TRANSFER SUBMISSION----------------------------
@@ -110,7 +114,8 @@ contract ConfidentialLedger {
         returns (uint256 transferId)
     {
         require(_to != address(0), "Invalid recipient");
-        require(commitments[msg.sender].x != 0, "Sender not registered");
+        require(registered[msg.sender], "Sender not registered");
+        require(registered[_to], "Receiver not registered");
         requireValidPoint(_valueCommitment);
 
         transferId = nextTransferId++;
