@@ -49,6 +49,19 @@ contract ConfidentialLedger {
     /// @notice Maps user addresses to their registration status
     mapping(address => bool) public registered;
 
+    //---------------------------- GENERATORS FOR BN254 --------------------------
+
+    function generatorG() internal pure returns (G1Point memory) {
+        return G1Point(1, 2);
+    }
+
+    function generatorH() internal pure returns (G1Point memory) {
+        return G1Point(
+            15874583062915680608726096264639934847252182205744433427769184792172832649573,
+            18094243890165305569146610927749331108413006235138910969355226634001094084669
+        );
+    }
+
     //------------------------EC OPERATIONS for BN254----------------------------
 
     uint256 constant FIELD_MODULUS = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
