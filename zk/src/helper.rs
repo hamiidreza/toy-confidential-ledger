@@ -6,6 +6,15 @@ use ark_serialize::CanonicalSerialize;
 use merlin::Transcript;
 use std::ops::MulAssign;
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct Address(pub [u8; 20]);
+
+impl Address {
+    pub fn as_bytes(&self) -> &[u8; 20] {
+        &self.0
+    }
+}
+
 pub fn transcript_append_point(transcript: &mut Transcript, label: &'static [u8], p: &C) {
     let mut buf = Vec::new();
     p.into_affine().serialize_compressed(&mut buf).unwrap();

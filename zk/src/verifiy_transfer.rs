@@ -2,7 +2,6 @@ use crate::helper::*;
 use crate::pedersen::*;
 use crate::range_proof::{RangeProof, verify_less_than_or_equal};
 use ark_bn254::G1Projective as C;
-use ethers::types::Address;
 use merlin::Transcript;
 
 pub fn verify_transfer_proof(

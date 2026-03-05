@@ -2,7 +2,6 @@ use crate::helper::*;
 use crate::pedersen::*;
 use crate::range_proof::{RangeProof, prove_less_than_or_equal};
 use ark_bn254::{Fr, G1Projective as C};
-use ethers::types::Address;
 use merlin::Transcript;
 use rand::thread_rng;
 
