@@ -89,9 +89,29 @@ pub fn field_to_bytes32<F: PrimeField>(x: &F) -> [u8; 32] {
 
 /// Manual Keccak-based Fiat–Shamir implementation:
 /// - Used for proofs that are verified by a Solidity smart contract.
-/// - Solidity must recompute the challenge deterministically. 
+/// - Solidity must recompute the challenge deterministically.
 /// Therefore the transcript must be explicitly defined and encoded in a way that
 /// both Rust and Solidity can reproduce exactly.
+///
+/// Transcript structure:
+///
+///     domain ||
+///     contract_address ||
+///     sender_address ||
+///     Gx || Gy ||
+///     Hx || Hy ||
+///     value ||
+///     Cx || Cy ||
+///     Ax || Ay
+///
+/// where all field elements and integers are encoded as 32-byte big-endian
+/// values and addresses are encoded as 20 bytes.
+///
+/// The resulting hash is reduced modulo the BN254 scalar field `Fr`.
+///
+/// This explicit Fiat–Shamir implementation is used only for proofs that
+/// are verified on-chain. Off-chain proofs in this project use
+/// `merlin::Transcript` instead.
 #[allow(non_snake_case)]
 pub fn compute_sigma_challenge(
     ck: &CommitmentKey,

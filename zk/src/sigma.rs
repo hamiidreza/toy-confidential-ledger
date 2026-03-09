@@ -6,7 +6,6 @@ use ark_ff::MontFp;
 use ark_ff::UniformRand;
 use rand::prelude::ThreadRng;
 
-
 /// Sigma protocol for registration of a new account
 #[allow(non_snake_case)]
 #[derive(Clone, Debug)]
