@@ -1,9 +1,11 @@
-use ark_bn254::Fr;
+use crate::pedersen::*;
 use ark_bn254::G1Projective as C;
+use ark_bn254::{Fr, G1Affine};
 use ark_ec::CurveGroup;
-use ark_ff::Field;
+use ark_ff::{BigInteger, Field, PrimeField};
 use ark_serialize::CanonicalSerialize;
 use merlin::Transcript;
+use sha3::{Digest, Keccak256};
 use std::ops::MulAssign;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -53,4 +55,74 @@ pub fn z_vec(z: Fr, first_power: u64, n: usize) -> Vec<Fr> {
         z_i.mul_assign(&z);
     }
     z_n
+}
+
+/// Encodes a `u64` value as a 32-byte big-endian integer.
+///
+/// Solidity represents integers as 256-bit values (`uint256`), so
+/// even small integers must be padded to 32 bytes when constructing
+/// the Fiat–Shamir transcript.
+pub fn u64_to_bytes32(x: u64) -> [u8; 32] {
+    let mut out = [0u8; 32];
+    out[24..32].copy_from_slice(&x.to_be_bytes());
+    out
+}
+
+/// Converts a field element into a fixed-width 32-byte big-endian encoding.
+///
+/// Arkworks' `to_bytes_be()` returns a variable-length representation.
+/// However, the Solidity verifier expects integers to be encoded as
+/// 32-byte values (equivalent to `uint256`).
+///
+/// This function left-pads the field element to 32 bytes so that the
+/// encoding matches Solidity's representation exactly.
+pub fn field_to_bytes32<F: PrimeField>(x: &F) -> [u8; 32] {
+    let mut out = [0u8; 32];
+
+    let bytes = x.into_bigint().to_bytes_be();
+
+    // left-pad to 32 bytes
+    out[32 - bytes.len()..].copy_from_slice(&bytes);
+
+    out
+}
+
+/// Manual Keccak-based Fiat–Shamir implementation:
+/// - Used for proofs that are verified by a Solidity smart contract.
+/// - Solidity must recompute the challenge deterministically. 
+/// Therefore the transcript must be explicitly defined and encoded in a way that
+/// both Rust and Solidity can reproduce exactly.
+#[allow(non_snake_case)]
+pub fn compute_sigma_challenge(
+    ck: &CommitmentKey,
+    contract: Address,
+    sender: Address,
+    value: u64,
+    C: G1Affine,
+    A: G1Affine,
+) -> Fr {
+    let g = ck.g.into_affine();
+    let h = ck.h.into_affine();
+
+    let mut hasher = Keccak256::new();
+
+    hasher.update(b"ConfidentialLedger:Register");
+    hasher.update(contract.as_bytes());
+    hasher.update(sender.as_bytes());
+
+    hasher.update(field_to_bytes32(&g.x));
+    hasher.update(field_to_bytes32(&g.y));
+    hasher.update(field_to_bytes32(&h.x));
+    hasher.update(field_to_bytes32(&h.y));
+
+    hasher.update(u64_to_bytes32(value));
+
+    hasher.update(field_to_bytes32(&C.x));
+    hasher.update(field_to_bytes32(&C.y));
+    hasher.update(field_to_bytes32(&A.x));
+    hasher.update(field_to_bytes32(&A.y));
+
+    let digest = hasher.finalize();
+
+    Fr::from_be_bytes_mod_order(&digest)
 }
