@@ -64,7 +64,8 @@ contract ConfidentialLedger {
 
     //------------------------EC OPERATIONS for BN254----------------------------
 
-    uint256 constant FIELD_MODULUS = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
+    uint256 internal constant FIELD_MODULUS =
+        21888242871839275222246405745257275088548364400416034343698204186575808495617;
 
     /// @dev G1 addition via precompile 0x06
     function ecAdd(G1Point memory a, G1Point memory b) internal view returns (G1Point memory r) {
@@ -101,6 +102,32 @@ contract ConfidentialLedger {
         uint256 rhs = addmod(x3, 3, FIELD_MODULUS);
 
         require(lhs == rhs, "point not on curve");
+    }
+
+    function computeChallenge(address _sender, uint256 _value, G1Point memory _commitment, G1Point memory _A)
+        internal
+        view
+        returns (uint256)
+    {
+        G1Point memory g = generatorG();
+        G1Point memory h = generatorH();
+
+        bytes memory data = bytes.concat(
+            bytes("ConfidentialLedger:Register"),
+            bytes20(address(this)),
+            bytes20(_sender),
+            bytes32(g.x),
+            bytes32(g.y),
+            bytes32(h.x),
+            bytes32(h.y),
+            bytes32(_value),
+            bytes32(_commitment.x),
+            bytes32(_commitment.y),
+            bytes32(_A.x),
+            bytes32(_A.y)
+        );
+        uint256 challenge = uint256(keccak256(data));
+        return challenge % FIELD_MODULUS;
     }
 
     //------------------------ACCOUNT REGISTRATION----------------------------
