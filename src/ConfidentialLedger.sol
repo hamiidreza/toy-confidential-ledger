@@ -51,11 +51,11 @@ contract ConfidentialLedger {
 
     //---------------------------- GENERATORS FOR BN254 --------------------------
 
-    function generatorG() internal pure returns (G1Point memory) {
+    function generatorG() public pure returns (G1Point memory) {
         return G1Point(1, 2);
     }
 
-    function generatorH() internal pure returns (G1Point memory) {
+    function generatorH() public pure returns (G1Point memory) {
         return G1Point(
             15874583062915680608726096264639934847252182205744433427769184792172832649573,
             18094243890165305569146610927749331108413006235138910969355226634001094084669
@@ -68,7 +68,7 @@ contract ConfidentialLedger {
         21888242871839275222246405745257275088548364400416034343698204186575808495617;
 
     /// @dev G1 addition via precompile 0x06
-    function ecAdd(G1Point memory a, G1Point memory b) internal view returns (G1Point memory r) {
+    function ecAdd(G1Point memory a, G1Point memory b) public view returns (G1Point memory r) {
         uint256[4] memory input = [a.x, a.y, b.x, b.y];
         bool success;
 
@@ -80,15 +80,37 @@ contract ConfidentialLedger {
     }
 
     /// @dev G1 subtraction: a - b = a + (-b)
-    function ecSub(G1Point memory a, G1Point memory b) internal view returns (G1Point memory) {
+    function ecSub(G1Point memory a, G1Point memory b) public view returns (G1Point memory) {
         // Negate y-coordinate mod p
         uint256 negY = (b.y == 0) ? 0 : FIELD_MODULUS - (b.y % FIELD_MODULUS);
 
         return ecAdd(a, G1Point(b.x, negY));
     }
 
+    function ecMul(G1Point memory p, uint256 scalar) public view returns (G1Point memory r) {
+        uint256[3] memory input;
+        input[0] = p.x;
+        input[1] = p.y;
+        input[2] = scalar;
+
+        bool success;
+
+        assembly {
+            success := staticcall(
+                gas(),
+                7, // ECMUL precompile
+                input,
+                0x60, // 3 * 32 bytes
+                r,
+                0x40 // 2 * 32 bytes
+            )
+        }
+
+        require(success, "ECMUL failed");
+    }
+
     /// @dev Basic curve membership check
-    function requireValidPoint(G1Point calldata p) internal pure {
+    function requireValidPoint(G1Point calldata p) public pure {
         require(p.x < FIELD_MODULUS, "x out of field");
         require(p.y < FIELD_MODULUS, "y out of field");
         require(!(p.x == 0 && p.y == 0), "point at infinity");
@@ -105,7 +127,7 @@ contract ConfidentialLedger {
     }
 
     function computeChallenge(address _sender, uint256 _value, G1Point memory _commitment, G1Point memory _A)
-        internal
+        public
         view
         returns (uint256)
     {
