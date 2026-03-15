@@ -110,7 +110,7 @@ contract ConfidentialLedger {
     }
 
     /// @dev Basic curve membership check
-    function requireValidPoint(G1Point calldata p) public pure {
+    function requireValidPoint(G1Point memory p) public pure {
         require(p.x < FIELD_MODULUS, "x out of field");
         require(p.y < FIELD_MODULUS, "y out of field");
         require(!(p.x == 0 && p.y == 0), "point at infinity");
