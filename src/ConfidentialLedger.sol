@@ -64,7 +64,10 @@ contract ConfidentialLedger {
 
     //------------------------EC OPERATIONS for BN254----------------------------
 
-    uint256 internal constant FIELD_MODULUS =
+    uint256 internal constant BASE_FIELD_MODULUS =
+        21888242871839275222246405745257275088696311157297823662689037894645226208583;
+
+    uint256 internal constant SCALAR_FIELD_MODULUS =
         21888242871839275222246405745257275088548364400416034343698204186575808495617;
 
     /// @dev G1 addition via precompile 0x06
@@ -82,7 +85,7 @@ contract ConfidentialLedger {
     /// @dev G1 subtraction: a - b = a + (-b)
     function ecSub(G1Point memory a, G1Point memory b) public view returns (G1Point memory) {
         // Negate y-coordinate mod p
-        uint256 negY = (b.y == 0) ? 0 : FIELD_MODULUS - (b.y % FIELD_MODULUS);
+        uint256 negY = (b.y == 0) ? 0 : BASE_FIELD_MODULUS - (b.y % BASE_FIELD_MODULUS);
 
         return ecAdd(a, G1Point(b.x, negY));
     }
@@ -111,17 +114,17 @@ contract ConfidentialLedger {
 
     /// @dev Basic curve membership check
     function requireValidPoint(G1Point memory p) public pure {
-        require(p.x < FIELD_MODULUS, "x out of field");
-        require(p.y < FIELD_MODULUS, "y out of field");
+        require(p.x < BASE_FIELD_MODULUS, "x out of field");
+        require(p.y < BASE_FIELD_MODULUS, "y out of field");
         require(!(p.x == 0 && p.y == 0), "point at infinity");
 
         // y^2 mod p
-        uint256 lhs = mulmod(p.y, p.y, FIELD_MODULUS);
+        uint256 lhs = mulmod(p.y, p.y, BASE_FIELD_MODULUS);
 
         // x^3 + 3 mod p
-        uint256 x2 = mulmod(p.x, p.x, FIELD_MODULUS);
-        uint256 x3 = mulmod(x2, p.x, FIELD_MODULUS);
-        uint256 rhs = addmod(x3, 3, FIELD_MODULUS);
+        uint256 x2 = mulmod(p.x, p.x, BASE_FIELD_MODULUS);
+        uint256 x3 = mulmod(x2, p.x, BASE_FIELD_MODULUS);
+        uint256 rhs = addmod(x3, 3, BASE_FIELD_MODULUS);
 
         require(lhs == rhs, "point not on curve");
     }
@@ -149,7 +152,7 @@ contract ConfidentialLedger {
             bytes32(_A.y)
         );
         uint256 challenge = uint256(keccak256(data));
-        return challenge % FIELD_MODULUS;
+        return challenge % BASE_FIELD_MODULUS;
     }
 
     //------------------------ACCOUNT REGISTRATION----------------------------
