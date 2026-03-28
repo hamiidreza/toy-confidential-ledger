@@ -113,7 +113,7 @@ contract ConfidentialLedger {
     }
 
     // Multiplies the curve generator G by a scalar s (i.e., computes s*G)
-    function generatorMul(uint256 s) internal view returns (G1Point memory) {
+    function generatorMul(uint256 s) public view returns (G1Point memory) {
         return ecMul(generatorG(), s);
     }
 
