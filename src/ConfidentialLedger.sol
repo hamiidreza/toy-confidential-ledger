@@ -112,6 +112,11 @@ contract ConfidentialLedger {
         require(success, "ECMUL failed");
     }
 
+    // Multiplies the curve generator G by a scalar s (i.e., computes s*G)
+    function generatorMul(uint256 s) internal view returns (G1Point memory) {
+        return ecMul(generatorG(), s);
+    }
+
     /// @dev Basic curve membership check
     function requireValidPoint(G1Point memory p) public pure {
         require(p.x < BASE_FIELD_MODULUS, "x out of field");
