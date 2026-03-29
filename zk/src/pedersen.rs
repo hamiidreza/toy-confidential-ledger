@@ -140,23 +140,22 @@ impl VecCommitmentKey {
 
 #[cfg(test)]
 mod tests {
+    use crate::pedersen::CommitmentKey;
     use ark_bn254::Fr;
     use ark_ec::CurveGroup;
-    use crate::pedersen::CommitmentKey;
 
     #[test]
     fn test_commitment() {
         let ck = CommitmentKey::fixed();
-    
+
         let value = Fr::from(10u64);
         let blinding = Fr::from(123u64);
-    
+
         let c = ck.hide(&value, &blinding);
         let affine = c.into_affine();
-    
+
         println!("Rust commitment:");
         println!("x: {}", affine.x);
         println!("y: {}", affine.y);
     }
-
 }
