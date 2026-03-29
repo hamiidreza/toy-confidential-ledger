@@ -95,14 +95,16 @@ pub fn field_to_bytes32<F: PrimeField>(x: &F) -> [u8; 32] {
 ///
 /// Transcript structure:
 ///
-///     domain ||
-///     contract_address ||
-///     sender_address ||
-///     Gx || Gy ||
-///     Hx || Hy ||
-///     value ||
-///     Cx || Cy ||
-///     Ax || Ay
+/// ```text
+/// domain ||
+/// contract_address ||
+/// sender_address ||
+/// Gx || Gy ||
+/// Hx || Hy ||
+/// value ||
+/// Cx || Cy ||
+/// Ax || Ay
+/// ```
 ///
 /// where all field elements and integers are encoded as 32-byte big-endian
 /// values and addresses are encoded as 20 bytes.
