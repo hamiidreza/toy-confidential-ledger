@@ -23,14 +23,14 @@ contract ConfidentialLedgerTest is Test {
         ledger = new ConfidentialLedger(verifier);
     }
 
-    function pedersenCommitOffchain(uint256 v, uint256 r) internal view returns (ConfidentialLedger.G1Point memory) {
-        ConfidentialLedger.G1Point memory G = ledger.generatorG();
-        ConfidentialLedger.G1Point memory H = ledger.generatorH();
+    function testCommitment() public view {
+        uint256 value = 10;
+        uint256 blinding = 123;
+        ConfidentialLedger.G1Point memory cm = ledger.buildCommitment(value, blinding);
 
-        ConfidentialLedger.G1Point memory vG = ledger.ecMul(G, v);
-        ConfidentialLedger.G1Point memory rH = ledger.ecMul(H, r);
-
-        return ledger.ecAdd(vG, rH);
+        console.log("Solidity commitment:");
+        console.log("x:", cm.x);
+        console.log("y:", cm.y);
     }
 
     function testTransfer() public {
@@ -38,14 +38,14 @@ contract ConfidentialLedgerTest is Test {
         vm.startPrank(alice);
         uint256 aliceV = 100; // value
         uint256 aliceR = 42; // blinding factor
-        ConfidentialLedger.G1Point memory aliceCommit = pedersenCommitOffchain(aliceV, aliceR);
+        ConfidentialLedger.G1Point memory aliceCommit = ledger.buildCommitment(aliceV, aliceR);
         ledger.registerAccount(aliceCommit);
         vm.stopPrank();
 
         vm.startPrank(bob);
         uint256 bobV = 50;
         uint256 bobR = 99;
-        ConfidentialLedger.G1Point memory bobCommit = pedersenCommitOffchain(bobV, bobR);
+        ConfidentialLedger.G1Point memory bobCommit = ledger.buildCommitment(bobV, bobR);
         ledger.registerAccount(bobCommit);
         vm.stopPrank();
 
@@ -53,7 +53,7 @@ contract ConfidentialLedgerTest is Test {
         vm.startPrank(alice);
         uint256 transferValue = 20;
         uint256 transferR = 7; // blinding
-        ConfidentialLedger.G1Point memory valueCommit = pedersenCommitOffchain(transferValue, transferR);
+        ConfidentialLedger.G1Point memory valueCommit = ledger.buildCommitment(transferValue, transferR);
 
         uint256 transferId = ledger.submitTransfer(
             bob,
@@ -81,12 +81,12 @@ contract ConfidentialLedgerTest is Test {
         // Compute expected final commitments for Alice
         uint256 expectedAliceV = 80; // 100 - 20
         uint256 expectedAliceR = 35; // 42 - 7
-        ConfidentialLedger.G1Point memory expectedAlice = pedersenCommitOffchain(expectedAliceV, expectedAliceR);
+        ConfidentialLedger.G1Point memory expectedAlice = ledger.buildCommitment(expectedAliceV, expectedAliceR);
 
         // Compute expected final commitments for Bob
         uint256 expectedBobV = 70; // 50 + 20
         uint256 expectedBobR = 106; // 99 + 7
-        ConfidentialLedger.G1Point memory expectedBob = pedersenCommitOffchain(expectedBobV, expectedBobR);
+        ConfidentialLedger.G1Point memory expectedBob = ledger.buildCommitment(expectedBobV, expectedBobR);
 
         assertEq(aliceFinal.x, expectedAlice.x, "Alice commitment X mismatch");
         assertEq(aliceFinal.y, expectedAlice.y, "Alice commitment Y mismatch");

@@ -160,6 +160,13 @@ contract ConfidentialLedger {
         return challenge % BASE_FIELD_MODULUS;
     }
 
+    function buildCommitment(uint256 value, uint256 blinding) public view returns (ConfidentialLedger.G1Point memory) {
+        G1Point memory vG = generatorMul(value);
+        G1Point memory rH = ecMul(generatorH(), blinding);
+
+        return ecAdd(vG, rH);
+    }
+
     //------------------------ACCOUNT REGISTRATION----------------------------
 
     /// @notice Register a new account with an initial balance commitment
