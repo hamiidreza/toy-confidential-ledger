@@ -30,8 +30,18 @@ export default function RootLayout({
       className={`${headingFont.variable} ${bodyFont.variable}`}
       suppressHydrationWarning
     >
-      <body className="font-sans antialiased">
-        {/* Use the wrapper instead of the raw Navbar */}
+      <body className="relative">
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="fixed inset-0 w-full h-full object-cover -z-10"
+        >
+          <source src="/bg.mp4" type="video/mp4" />
+        </video>
+
+        <div className="fixed inset-0 bg-black/60 -z-10"></div>
 
         {children}
       </body>
