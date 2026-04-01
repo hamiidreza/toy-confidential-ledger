@@ -68,14 +68,14 @@ contract ConfidentialLedger {
     //---------------------------- GENERATORS FOR BN254 --------------------------
 
     function generatorG() public pure returns (G1Point memory) {
-        return G1Point(1, 2);
+        return G1Point({x: 1, y: 2});
     }
 
     function generatorH() public pure returns (G1Point memory) {
-        return G1Point(
-            15874583062915680608726096264639934847252182205744433427769184792172832649573,
-            18094243890165305569146610927749331108413006235138910969355226634001094084669
-        );
+        return G1Point({
+            x: 15874583062915680608726096264639934847252182205744433427769184792172832649573,
+            y: 18094243890165305569146610927749331108413006235138910969355226634001094084669
+        });
     }
 
     //------------------------EC OPERATIONS for BN254----------------------------
@@ -103,7 +103,7 @@ contract ConfidentialLedger {
         // Negate y-coordinate mod p
         uint256 negY = (b.y == 0) ? 0 : BASE_FIELD_MODULUS - (b.y % BASE_FIELD_MODULUS);
 
-        return ecAdd(a, G1Point(b.x, negY));
+        return ecAdd(a, G1Point({x: b.x, y: negY}));
     }
 
     function ecMul(G1Point memory p, uint256 scalar) public view returns (G1Point memory r) {
@@ -232,11 +232,11 @@ contract ConfidentialLedger {
         require(commitments[t.from].x != 0, "Sender not registered");
         require(commitments[t.to].x != 0, "Receiver not registered");
 
-        G1Point memory C_from = commitments[t.from];
-        G1Point memory C_to = commitments[t.to];
+        G1Point memory cmFrom = commitments[t.from];
+        G1Point memory cmTo = commitments[t.to];
 
-        commitments[t.from] = ecSub(C_from, t.valueCommitment); // C_from' = C_from - C_v
-        commitments[t.to] = ecAdd(C_to, t.valueCommitment); // C_to' = C_to + C_v
+        commitments[t.from] = ecSub(cmFrom, t.valueCommitment); // cmFrom' = cmFrom - C_v
+        commitments[t.to] = ecAdd(cmTo, t.valueCommitment); // cmTo' = cmTo + C_v
 
         emit TransferApproved(_transferId, t.from, t.to);
 

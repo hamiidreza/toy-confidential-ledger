@@ -12,10 +12,10 @@ contract SubmitTransfer is Script {
         ConfidentialLedger ledger = ConfidentialLedger(ledgerAddress);
 
         // Parameters for transfer
-        uint256 v_transfer = 3;
-        uint256 r_transfer = 456;
+        uint256 vTransfer = 3;
+        uint256 rTransfer = 456;
         address to = 0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC;
-        ConfidentialLedger.G1Point memory valueCommitment = ledger.buildCommitment(v_transfer, r_transfer);
+        ConfidentialLedger.G1Point memory valueCommitment = ledger.buildCommitment(vTransfer, rTransfer);
         bytes memory proof = hex"1234";
 
         // Broadcast transaction
