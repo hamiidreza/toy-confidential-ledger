@@ -50,13 +50,17 @@ contract ConfidentialLedger {
     mapping(address => bool) public registered;
 
     //-----------------------------STORAGE GETTERS-------------------------------
-    
+
     function getCommitments(address user) external view returns (uint256, uint256) {
         G1Point memory commitment = commitments[user];
         return (commitment.x, commitment.y);
     }
 
-    function getPendingTransfer(uint256 transferId) external view returns (address, address, uint256, uint256, bytes memory) {
+    function getPendingTransfer(uint256 transferId)
+        external
+        view
+        returns (address, address, uint256, uint256, bytes memory)
+    {
         Transfer memory transfer = pendingTransfers[transferId];
         return (transfer.from, transfer.to, transfer.valueCommitment.x, transfer.valueCommitment.y, transfer.proofBlob);
     }
