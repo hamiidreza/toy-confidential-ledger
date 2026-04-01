@@ -9,10 +9,13 @@ contract SubmitTransfer is Script {
     function run() external {
         // Address of deployed contract
         address ledgerAddress = vm.envAddress("LEDGER_ADDRESS");
+        ConfidentialLedger ledger = ConfidentialLedger(ledgerAddress);
 
         // Parameters for transfer
+        uint256 v_transfer = 3;
+        uint256 r_transfer = 456;
         address to = 0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC;
-        ConfidentialLedger.G1Point memory valueCommitment = ConfidentialLedger.G1Point({x: 1111, y: 2222});
+        ConfidentialLedger.G1Point memory valueCommitment = ledger.buildCommitment(v_transfer, r_transfer);
         bytes memory proof = hex"1234";
 
         // Broadcast transaction

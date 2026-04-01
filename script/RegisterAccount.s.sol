@@ -5,18 +5,19 @@ import {Script} from "forge-std/Script.sol";
 import {ConfidentialLedger} from "../src/ConfidentialLedger.sol";
 import {console} from "forge-std/console.sol";
 
-contract RegisterAccountScript is Script {
+contract RegisterAccount is Script {
     function run() external {
-        // Address of deployed contract
         address ledgerAddress = vm.envAddress("LEDGER_ADDRESS");
         ConfidentialLedger ledger = ConfidentialLedger(ledgerAddress);
 
-        ConfidentialLedger.G1Point memory commitment = ConfidentialLedger.G1Point({x: 1111, y: 2222});
+        uint256 value = 10;
+        uint256 blinding = 123;
+        ConfidentialLedger.G1Point memory cm = ledger.buildCommitment(value, blinding);
 
         // Start broadcast
         vm.startBroadcast();
 
-        ledger.registerAccount(commitment);
+        ledger.registerAccount(cm);
 
         vm.stopBroadcast();
 
