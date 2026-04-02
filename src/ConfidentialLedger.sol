@@ -19,6 +19,13 @@ contract ConfidentialLedger {
         bytes proofBlob; // Bulletproof proof (opaque to contract)
     }
 
+    /// @notice Represents a Sigma protocol proof for well-formedness of the commitment in the account registration
+    struct SigmaProof {
+        G1Point A;
+        uint256 z1;
+        uint256 z2;
+    }
+
     /// @notice Address of the trusted off-chain proof verifier
     address public trustedVerifier;
 
