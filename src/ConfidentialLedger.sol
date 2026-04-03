@@ -21,9 +21,8 @@ contract ConfidentialLedger {
 
     /// @notice Represents a Sigma protocol proof for well-formedness of the commitment in the account registration
     struct SigmaProof {
-        G1Point A;
-        uint256 z1;
-        uint256 z2;
+        G1Point A; // Sigma protocol first message
+        uint256 z; // Sigma protocol last message
     }
 
     /// @notice Address of the trusted off-chain proof verifier
@@ -192,17 +191,40 @@ contract ConfidentialLedger {
 
     //------------------------ACCOUNT REGISTRATION----------------------------
 
-    /// @notice Register a new account with an initial balance commitment
-    /// @dev The commitment is assumed to encode a deposit value chosen by the user.
-    ///      Correctness of the commitment (e.g., that it commits to the intended
-    ///      deposit amount) is verified offchain by an
-    ///      external component and is out of scope for this contract.
-    /// @param _commitment The commitment
-    function registerAccount(G1Point calldata _commitment) external {
+    /// @notice Register a new account by depositing ETH and providing a valid commitment.
+    /// @dev The caller sends ETH (`msg.value = v`) and provides a Pedersen commitment
+    ///      C = vG + rH along with a Sigma proof of knowledge of the blinding factor `r`.
+    ///      The proof verifies that the commitment is well-formed with respect to the
+    ///      deposited value, i.e., that C - vG = rH for some secret `r` known to the caller.
+    ///      This ensures the caller can later open and spend the commitment.
+    ///      The Sigma proof is verified onchain.
+    /// @param _C The Pedersen commitment C = vG + rH
+    /// @param _proof Sigma proof proving knowledge of `r` such that C - vG = rH
+    function registerAccount(G1Point calldata _C, SigmaProof calldata _proof) external payable {
         require(!registered[msg.sender], "Account already registered");
-        requireValidPoint(_commitment);
+        requireValidPoint(_C);
+        G1Point memory vG = ecMul(generatorG(), msg.value); // v * G
+        G1Point memory Cprime = ecSub(_C, vG); // C' = C - v * G
 
-        commitments[msg.sender] = _commitment;
+        bytes memory transcript = bytes.concat(
+            bytes("DepositSigmaProof"),
+            bytes20(address(this)),
+            bytes32(msg.value),
+            bytes32(_proof.A.x),
+            bytes32(_proof.A.y),
+            bytes32(_C.x),
+            bytes32(_C.y)
+        );
+        uint256 eRaw = uint256(keccak256(transcript));
+        uint256 e = eRaw % BASE_FIELD_MODULUS;
+
+        G1Point memory lhs = ecMul(generatorH(), _proof.z);
+        G1Point memory eCprime = ecMul(Cprime, e);
+        G1Point memory rhs = ecAdd(_proof.A, eCprime);
+
+        require(lhs.x == rhs.x && lhs.y == rhs.y, "Invalid proof");
+
+        commitments[msg.sender] = _C;
         registered[msg.sender] = true;
     }
 
