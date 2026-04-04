@@ -20,7 +20,7 @@ contract ConfidentialLedger {
     }
 
     /// @notice Represents a Sigma protocol proof for well-formedness of the commitment in the account registration
-    struct SigmaProof {
+    struct RegistrationProof {
         G1Point A; // Sigma protocol first message
         uint256 z; // Sigma protocol last message
     }
@@ -200,12 +200,13 @@ contract ConfidentialLedger {
     ///      The Sigma proof is verified onchain.
     /// @param _C The Pedersen commitment C = vG + rH
     /// @param _proof Sigma proof proving knowledge of `r` such that C - vG = rH
-    function registerAccount(G1Point calldata _C, SigmaProof calldata _proof) external payable {
+    function registerAccount(G1Point calldata _C, RegistrationProof calldata _proof) external payable {
         require(!registered[msg.sender], "Account already registered");
         requireValidPoint(_C);
         G1Point memory vG = ecMul(generatorG(), msg.value); // v * G
         G1Point memory Cprime = ecSub(_C, vG); // C' = C - v * G
 
+        // TODO: add commitment keys to the transcript
         bytes memory transcript = bytes.concat(
             bytes("DepositSigmaProof"),
             bytes20(address(this)),
