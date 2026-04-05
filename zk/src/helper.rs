@@ -57,14 +57,14 @@ pub fn z_vec(z: Fr, first_power: u64, n: usize) -> Vec<Fr> {
     z_n
 }
 
-/// Encodes a `u64` value as a 32-byte big-endian integer.
+/// Encodes a `u128` value as a 32-byte big-endian integer.
 ///
 /// Solidity represents integers as 256-bit values (`uint256`), so
 /// even small integers must be padded to 32 bytes when constructing
 /// the Fiat–Shamir transcript.
-pub fn u64_to_bytes32(x: u64) -> [u8; 32] {
+pub fn u128_to_bytes32(x: u128) -> [u8; 32] {
     let mut out = [0u8; 32];
-    out[24..32].copy_from_slice(&x.to_be_bytes());
+    out[16..32].copy_from_slice(&x.to_be_bytes());
     out
 }
 
@@ -119,7 +119,7 @@ pub fn compute_sigma_challenge(
     ck: &CommitmentKey,
     contract: Address,
     sender: Address,
-    value: u64,
+    value: u128,
     C: G1Affine,
     A: G1Affine,
 ) -> Fr {
@@ -137,7 +137,7 @@ pub fn compute_sigma_challenge(
     hasher.update(field_to_bytes32(&h.x));
     hasher.update(field_to_bytes32(&h.y));
 
-    hasher.update(u64_to_bytes32(value));
+    hasher.update(u128_to_bytes32(value));
 
     hasher.update(field_to_bytes32(&C.x));
     hasher.update(field_to_bytes32(&C.y));
