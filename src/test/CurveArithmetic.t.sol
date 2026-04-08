@@ -3,7 +3,7 @@
 pragma solidity ^0.8.20;
 
 import {Test} from "forge-std/Test.sol";
-import {ConfidentialLedger} from "../src/ConfidentialLedger.sol";
+import {ConfidentialLedger} from "../ConfidentialLedger.sol";
 
 contract CurveArithmeticTest is Test {
     ConfidentialLedger ledger;

@@ -4,7 +4,7 @@ pragma solidity ^0.8.20;
 
 import {Test} from "forge-std/Test.sol";
 import {console} from "forge-std/console.sol";
-import {ConfidentialLedger} from "../src/ConfidentialLedger.sol";
+import {ConfidentialLedger} from "../ConfidentialLedger.sol";
 
 contract ConfidentialLedgerTest is Test {
     ConfidentialLedger ledger;
@@ -34,19 +34,22 @@ contract ConfidentialLedgerTest is Test {
     }
 
     function testTransfer() public {
+        // Dummy proof
+        ConfidentialLedger.RegistrationProof memory dummyProof =
+            ConfidentialLedger.RegistrationProof({A: ConfidentialLedger.G1Point(123, 456), z: 123});
         // Register accounts
         vm.startPrank(alice);
         uint256 aliceV = 100; // value
         uint256 aliceR = 42; // blinding factor
         ConfidentialLedger.G1Point memory aliceCommit = ledger.buildCommitment(aliceV, aliceR);
-        ledger.registerAccount(aliceCommit);
+        ledger.registerAccount(aliceCommit, dummyProof);
         vm.stopPrank();
 
         vm.startPrank(bob);
         uint256 bobV = 50;
         uint256 bobR = 99;
         ConfidentialLedger.G1Point memory bobCommit = ledger.buildCommitment(bobV, bobR);
-        ledger.registerAccount(bobCommit);
+        ledger.registerAccount(bobCommit, dummyProof);
         vm.stopPrank();
 
         // Submit transfer: Alice sends 20 to Bob
