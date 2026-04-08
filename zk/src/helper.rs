@@ -119,7 +119,7 @@ pub fn compute_sigma_challenge(
     ck: &CommitmentKey,
     contract: Address,
     sender: Address,
-    value: u128,
+    value: Fr,
     C: G1Affine,
     A: G1Affine,
 ) -> Fr {
@@ -137,7 +137,7 @@ pub fn compute_sigma_challenge(
     hasher.update(field_to_bytes32(&h.x));
     hasher.update(field_to_bytes32(&h.y));
 
-    hasher.update(u128_to_bytes32(value));
+    hasher.update(field_to_bytes32(&value));
 
     hasher.update(field_to_bytes32(&C.x));
     hasher.update(field_to_bytes32(&C.y));
