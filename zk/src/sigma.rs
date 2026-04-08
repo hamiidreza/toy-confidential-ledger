@@ -18,22 +18,16 @@ pub struct RegistrationProof {
     pub z: Fr,
 }
 
+#[allow(non_snake_case)]
 pub fn prove_registration(
     r: Fr,
-    v: u128,
+    v: Fr,
     commitment: C,
     ck: &CommitmentKey,
     contract_address: Address,
     sender: Address,
 ) -> RegistrationProof {
     let mut rng = thread_rng();
-
-    // Compute vG
-    let v_fr = Fr::from(v);
-    let vG = ck.g.mul(v_fr);
-
-    // Compute C' = C - vG
-    let Cprime = commitment - vG;
 
     // Sample `a` for the first message
     let a = Fr::rand(&mut rng);
@@ -50,7 +44,56 @@ pub fn prove_registration(
         A.into_affine(),
     );
 
-    // Response
+    // Response z
     let z = a + e * r;
+
     RegistrationProof { A, z }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::helper::{Address, compute_sigma_challenge};
+    use crate::pedersen::CommitmentKey;
+    use ark_bn254::Fr;
+    use ark_ec::CurveGroup;
+
+    use crate::sigma::prove_registration;
+    use std::ops::Mul;
+
+    #[allow(non_snake_case)]
+    #[test]
+    fn test_prove_registration() {
+        let ck = CommitmentKey::fixed();
+
+        let v = Fr::from(10u64);
+        let r = Fr::from(123u64);
+
+        let commitment = ck.hide(&v, &r);
+
+        let dummy_address = Address([0u8; 20]);
+
+        let sigma_proof = prove_registration(r, v, commitment, &ck, dummy_address, dummy_address);
+
+        let A = sigma_proof.A;
+        let z = sigma_proof.z;
+
+        // Compute vG
+        let vG = ck.g.mul(v);
+
+        // Compute C' = C - vG
+        let Cprime = commitment - vG;
+
+        let e: Fr = compute_sigma_challenge(
+            &ck,
+            dummy_address,
+            dummy_address,
+            v,
+            commitment.into_affine(),
+            A.into_affine(),
+        );
+
+        let lhs = ck.h.mul(z);
+        let rhs = A + Cprime.mul(e);
+        assert_eq!(lhs, rhs, "Internal proof verification failed");
+    }
 }

@@ -1,5 +1,5 @@
-use ark_ec::CurveGroup;
 use ark_bn254::Fr;
+use ark_ec::CurveGroup;
 use zk::helper::*;
 use zk::pedersen::CommitmentKey;
 
