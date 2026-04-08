@@ -1,4 +1,5 @@
 use ark_ec::CurveGroup;
+use ark_bn254::Fr;
 use zk::helper::*;
 use zk::pedersen::CommitmentKey;
 
@@ -9,7 +10,7 @@ fn main() {
     let contract = Address([1u8; 20]);
     let sender = Address([2u8; 20]);
 
-    let value = 42u128;
+    let value = Fr::from(42);
 
     let C = ck.g.into_affine();
     let A = ck.h.into_affine();
