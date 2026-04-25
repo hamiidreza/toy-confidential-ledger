@@ -33,6 +33,36 @@ contract ConfidentialLedgerTest is Test {
         console.log("y:", cm.y);
     }
 
+    function testRegisterAccountValid() public {
+        vm.deal(alice, 10 ether);
+        vm.startPrank(alice);
+
+        uint256 v = 10 ether;
+
+        ConfidentialLedger.G1Point memory C = ConfidentialLedger.G1Point({
+            x: 123,
+            y: 456
+        });
+
+        ConfidentialLedger.RegistrationProof memory proof = ConfidentialLedger.RegistrationProof({
+            A: ConfidentialLedger.G1Point({
+                x: 123,
+                y: 456
+            }),
+            z: 123
+        });
+
+        ledger.registerAccount{value: v}(C, proof);
+        
+        assertTrue(ledger.registered(alice));
+
+        (uint256 x, uint256 y) = ledger.commitments(alice);
+        assertEq(x, C.x);
+        assertEq(y, C.y);
+
+        vm.stopPrank();
+    }
+
     function testTransfer() public {
         // Dummy proof
         ConfidentialLedger.RegistrationProof memory dummyProof =
