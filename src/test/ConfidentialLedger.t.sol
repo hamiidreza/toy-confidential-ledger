@@ -128,6 +128,7 @@ contract ConfidentialLedgerTest is Test {
     }
 
     function testComputeChallenge() public view {
+        address contractAddr = address(0x1111111111111111111111111111111111111111);
         address sender = address(0x2222222222222222222222222222222222222222);
         uint256 value = 42;
 

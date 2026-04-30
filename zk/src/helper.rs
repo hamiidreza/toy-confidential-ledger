@@ -148,3 +148,34 @@ pub fn compute_sigma_challenge(
 
     Fr::from_be_bytes_mod_order(&digest)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[allow(non_snake_case)]
+    #[test]
+    fn test_compute_sigma_challenge() {
+        let ck = CommitmentKey::fixed();
+
+        let contract = Address([0x11; 20]);
+        let sender = Address([0x22; 20]);
+
+        let value = Fr::from(42u64);
+
+        let C = ck.g.into_affine();
+        let A = ck.h.into_affine();
+
+        let challenge = compute_sigma_challenge(&ck, contract, sender, value, C, A);
+
+        let challenge_bytes = challenge.into_bigint().to_bytes_be();
+        let mut padded = [0u8; 32];
+        padded[32 - challenge_bytes.len()..].copy_from_slice(&challenge_bytes);
+
+        print!("Rust Challenge: 0x");
+        for b in padded.iter() {
+            print!("{:02x}", b);
+        }
+        println!();
+    }
+}

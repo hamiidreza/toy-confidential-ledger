@@ -70,9 +70,17 @@ mod tests {
 
         let commitment = ck.hide(&v, &r);
 
-        let dummy_address = Address([0u8; 20]);
+        let dummy_contract_address = Address([0x11; 20]);
+        let dummy_sender_address = Address([0x22; 20]);
 
-        let sigma_proof = prove_registration(r, v, commitment, &ck, dummy_address, dummy_address);
+        let sigma_proof = prove_registration(
+            r,
+            v,
+            commitment,
+            &ck,
+            dummy_contract_address,
+            dummy_sender_address,
+        );
 
         let A = sigma_proof.A;
         let z = sigma_proof.z;
@@ -85,8 +93,8 @@ mod tests {
 
         let e: Fr = compute_sigma_challenge(
             &ck,
-            dummy_address,
-            dummy_address,
+            dummy_contract_address,
+            dummy_sender_address,
             v,
             commitment.into_affine(),
             A.into_affine(),
