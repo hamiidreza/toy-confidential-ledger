@@ -179,7 +179,7 @@ contract ConfidentialLedger {
             bytes32(_A.y)
         );
         uint256 challenge = uint256(keccak256(data));
-        return challenge % BASE_FIELD_MODULUS;
+        return challenge % SCALAR_FIELD_MODULUS;
     }
 
     function buildCommitment(uint256 value, uint256 blinding) public view returns (ConfidentialLedger.G1Point memory) {
@@ -220,7 +220,7 @@ contract ConfidentialLedger {
             bytes32(cm.y)
         );
         uint256 eRaw = uint256(keccak256(transcript));
-        uint256 e = eRaw % BASE_FIELD_MODULUS;
+        uint256 e = eRaw % SCALAR_FIELD_MODULUS;
 
         G1Point memory lhs = ecMul(generatorH(), proof.z);
         G1Point memory eCprime = ecMul(cmPrime, e);
