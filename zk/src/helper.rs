@@ -158,7 +158,11 @@ mod tests {
     fn test_compute_sigma_challenge() {
         let ck = CommitmentKey::fixed();
 
-        let contract = Address([0x11; 20]);
+        // The exact deployed address from Foundry
+        let contract = Address([
+            0x56, 0x15, 0xde, 0xb7, 0x98, 0xbb, 0x3e, 0x4d, 0xfa, 0x01, 0x39, 0xdf, 0xa1, 0xb3,
+            0xd4, 0x33, 0xcc, 0x23, 0xb7, 0x2f,
+        ]);
         let sender = Address([0x22; 20]);
 
         let value = Fr::from(42u64);
@@ -167,15 +171,6 @@ mod tests {
         let A = ck.h.into_affine();
 
         let challenge = compute_sigma_challenge(&ck, contract, sender, value, C, A);
-
-        let challenge_bytes = challenge.into_bigint().to_bytes_be();
-        let mut padded = [0u8; 32];
-        padded[32 - challenge_bytes.len()..].copy_from_slice(&challenge_bytes);
-
-        print!("Rust Challenge: 0x");
-        for b in padded.iter() {
-            print!("{:02x}", b);
-        }
-        println!();
+        println!("Rust Challenge: {}", challenge);
     }
 }

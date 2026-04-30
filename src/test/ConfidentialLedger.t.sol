@@ -39,21 +39,13 @@ contract ConfidentialLedgerTest is Test {
 
         uint256 v = 10 ether;
 
-        ConfidentialLedger.G1Point memory C = ConfidentialLedger.G1Point({
-            x: 123,
-            y: 456
-        });
+        ConfidentialLedger.G1Point memory C = ConfidentialLedger.G1Point({x: 123, y: 456});
 
-        ConfidentialLedger.RegistrationProof memory proof = ConfidentialLedger.RegistrationProof({
-            A: ConfidentialLedger.G1Point({
-                x: 123,
-                y: 456
-            }),
-            z: 123
-        });
+        ConfidentialLedger.RegistrationProof memory proof =
+            ConfidentialLedger.RegistrationProof({A: ConfidentialLedger.G1Point({x: 123, y: 456}), z: 123});
 
         ledger.registerAccount{value: v}(C, proof);
-        
+
         assertTrue(ledger.registered(alice));
 
         (uint256 x, uint256 y) = ledger.commitments(alice);
@@ -128,7 +120,6 @@ contract ConfidentialLedgerTest is Test {
     }
 
     function testComputeChallenge() public view {
-        address contractAddr = address(0x1111111111111111111111111111111111111111);
         address sender = address(0x2222222222222222222222222222222222222222);
         uint256 value = 42;
 
@@ -137,6 +128,7 @@ contract ConfidentialLedgerTest is Test {
 
         uint256 c = ledger.computeChallenge(sender, value, C, A);
 
-        console.log("challenge:", c);
+        console.log("Solidity Challenge:");
+        console.log(c);
     }
 }
