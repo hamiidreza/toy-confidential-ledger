@@ -62,7 +62,7 @@ mod tests {
 
     #[allow(non_snake_case)]
     #[test]
-    fn test_prove_registration() {
+    fn test_prove_registration_internal() {
         let ck = CommitmentKey::fixed();
 
         let v = Fr::from(10u64);
@@ -103,5 +103,48 @@ mod tests {
         let lhs = ck.h.mul(z);
         let rhs = A + Cprime.mul(e);
         assert_eq!(lhs, rhs, "Internal proof verification failed");
+    }
+
+    #[allow(non_snake_case)]
+    #[test]
+    fn test_prove_registration_solidity() {
+        let ck = CommitmentKey::fixed();
+
+        // The deployed ledger address
+        let contract = Address([
+            0x56, 0x15, 0xde, 0xb7, 0x98, 0xbb, 0x3e, 0x4d, 0xfa, 0x01, 0x39, 0xdf, 0xa1, 0xb3,
+            0xd4, 0x33, 0xcc, 0x23, 0xb7, 0x2f,
+        ]);
+
+        // Alice's exact address from Foundry setUp()
+        let sender = Address([
+            0x70, 0x99, 0x79, 0x70, 0xC5, 0x18, 0x12, 0xdc, 0x3A, 0x01, 0x0C, 0x7d, 0x01, 0xb5,
+            0x0e, 0x0d, 0x17, 0xdc, 0x79, 0xC8,
+        ]);
+
+        let v = Fr::from(10u64);
+        let r = Fr::from(123u64);
+
+        let cm = ck.hide(&v, &r);
+        let sigma_proof = prove_registration(r, v, cm, &ck, contract, sender);
+
+        let cm_affine = cm.into_affine();
+        let A_affine = sigma_proof.A.into_affine();
+
+        println!("// Copy this directly into testRegisterAccountValid():");
+        println!("uint256 v = {};", v);
+        println!("ConfidentialLedger.G1Point memory cm = ConfidentialLedger.G1Point({{");
+        println!("    x: {},", cm_affine.x);
+        println!("    y: {}", cm_affine.y);
+        println!("}});");
+        println!(
+            "ConfidentialLedger.RegistrationProof memory sigma_proof = ConfidentialLedger.RegistrationProof({{"
+        );
+        println!("    A: ConfidentialLedger.G1Point({{");
+        println!("        x: {},", A_affine.x);
+        println!("        y: {}", A_affine.y);
+        println!("    }}),");
+        println!("    z: {}", sigma_proof.z);
+        println!("}});");
     }
 }

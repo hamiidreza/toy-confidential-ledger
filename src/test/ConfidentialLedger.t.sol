@@ -37,12 +37,21 @@ contract ConfidentialLedgerTest is Test {
         vm.deal(alice, 10 ether);
         vm.startPrank(alice);
 
-        uint256 v = 10 ether;
+        uint256 v = 10;
 
-        ConfidentialLedger.G1Point memory C = ConfidentialLedger.G1Point({x: 123, y: 456});
+        // The commitment and proof are test vectors computed by the rust backend
+        ConfidentialLedger.G1Point memory C = ConfidentialLedger.G1Point({
+            x: 2728948068662588906053375844853277504133613820970435701842157998734568672810,
+            y: 853849046403142810594520388990037673382175221343473553991405080325106189102
+        });
 
-        ConfidentialLedger.RegistrationProof memory proof =
-            ConfidentialLedger.RegistrationProof({A: ConfidentialLedger.G1Point({x: 123, y: 456}), z: 123});
+        ConfidentialLedger.RegistrationProof memory proof = ConfidentialLedger.RegistrationProof({
+            A: ConfidentialLedger.G1Point({
+                x: 1580254641683112776236868289133220474143398396497069723358872286826089243728,
+                y: 20252714120964733343018400241965905222243836476699619031872049389087716721440
+            }),
+            z: 8808648237554383923209689863624107147014760259119199861981385717219860194777
+        });
 
         ledger.registerAccount{value: v}(C, proof);
 

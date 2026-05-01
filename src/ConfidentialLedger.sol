@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+import {console} from "forge-std/console.sol";
+
 /// @title Toy Confidential Ledger  (BN254 + off-chain Bulletproof range proofs)
 /// @notice Ledger enforces commitment algebra; ZK proofs verified off-chain
 /// @dev Learning project — NOT production safe
@@ -209,18 +211,7 @@ contract ConfidentialLedger {
         G1Point memory vG = ecMul(generatorG(), value); // vG
         G1Point memory cmPrime = ecSub(cm, vG); // cm' = cm - vG
 
-        // TODO: add commitment keys to the transcript
-        bytes memory transcript = bytes.concat(
-            bytes("DepositSigmaProof"),
-            bytes20(address(this)),
-            bytes32(value),
-            bytes32(proof.A.x),
-            bytes32(proof.A.y),
-            bytes32(cm.x),
-            bytes32(cm.y)
-        );
-        uint256 eRaw = uint256(keccak256(transcript));
-        uint256 e = eRaw % SCALAR_FIELD_MODULUS;
+        uint256 e = computeChallenge(msg.sender, value, cm, proof.A);
 
         G1Point memory lhs = ecMul(generatorH(), proof.z);
         G1Point memory eCprime = ecMul(cmPrime, e);
