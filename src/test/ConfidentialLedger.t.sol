@@ -65,27 +65,40 @@ contract ConfidentialLedgerTest is Test {
     }
 
     function testTransfer() public {
-        // Dummy proof
-        ConfidentialLedger.RegistrationProof memory dummyProof =
-            ConfidentialLedger.RegistrationProof({A: ConfidentialLedger.G1Point(123, 456), z: 123});
         // Register accounts
+        vm.deal(alice, 10 ether);
         vm.startPrank(alice);
-        uint256 aliceV = 100; // value
-        uint256 aliceR = 42; // blinding factor
+        uint256 aliceV = 10; // value
+        uint256 aliceR = 123; // blinding factor
         ConfidentialLedger.G1Point memory aliceCommit = ledger.buildCommitment(aliceV, aliceR);
-        ledger.registerAccount(aliceCommit, dummyProof);
+        ConfidentialLedger.RegistrationProof memory aliceProof = ConfidentialLedger.RegistrationProof({
+            A: ConfidentialLedger.G1Point({
+                x: 5136569057728998864821096742374154201164091431178401175976611314497886384996,
+                y: 2428854302252424305312248532193723208356413145561465756402318950353065516707
+            }),
+            z: 5740415415077101799673591281475485139428209021836784676637295105521256500527
+        });
+        ledger.registerAccount{value: aliceV}(aliceCommit, aliceProof);
         vm.stopPrank();
 
+        vm.deal(bob, 10 ether);
         vm.startPrank(bob);
-        uint256 bobV = 50;
-        uint256 bobR = 99;
+        uint256 bobV = 5;
+        uint256 bobR = 456;
         ConfidentialLedger.G1Point memory bobCommit = ledger.buildCommitment(bobV, bobR);
-        ledger.registerAccount(bobCommit, dummyProof);
+        ConfidentialLedger.RegistrationProof memory bobProof = ConfidentialLedger.RegistrationProof({
+            A: ConfidentialLedger.G1Point({
+                x: 10748493291561824590430443926313305471328232386979114914642935691411658258018,
+                y: 7299166563974178625266321178994838975949053246356435486097075263660445100230
+            }),
+            z: 3592587229999400369810703726385929904982100614603883068905409518128218158904
+        });
+        ledger.registerAccount{value: bobV}(bobCommit, bobProof);
         vm.stopPrank();
 
-        // Submit transfer: Alice sends 20 to Bob
+        // Submit transfer: Alice sends 2 to Bob
         vm.startPrank(alice);
-        uint256 transferValue = 20;
+        uint256 transferValue = 2;
         uint256 transferR = 7; // blinding
         ConfidentialLedger.G1Point memory valueCommit = ledger.buildCommitment(transferValue, transferR);
 
@@ -113,13 +126,13 @@ contract ConfidentialLedgerTest is Test {
         ledger.requireValidPoint(bobFinal);
 
         // Compute expected final commitments for Alice
-        uint256 expectedAliceV = 80; // 100 - 20
-        uint256 expectedAliceR = 35; // 42 - 7
+        uint256 expectedAliceV = 8; // 10 - 2
+        uint256 expectedAliceR = 116; // 123 - 7
         ConfidentialLedger.G1Point memory expectedAlice = ledger.buildCommitment(expectedAliceV, expectedAliceR);
 
         // Compute expected final commitments for Bob
-        uint256 expectedBobV = 70; // 50 + 20
-        uint256 expectedBobR = 106; // 99 + 7
+        uint256 expectedBobV = 7; // 5 + 2
+        uint256 expectedBobR = 463; // 456 + 7
         ConfidentialLedger.G1Point memory expectedBob = ledger.buildCommitment(expectedBobV, expectedBobR);
 
         assertEq(aliceFinal.x, expectedAlice.x, "Alice commitment X mismatch");
