@@ -57,6 +57,12 @@ contract ConfidentialLedger {
     /// @notice Maps user addresses to their registration status
     mapping(address => bool) public registered;
 
+    /// @notice Maps user addresses to their current transfer nonce
+    mapping(address => uint256) public nonces;
+
+    /// @notice Emitted when a user submits a transfer for off-chain verification
+    event TransferSubmitted(uint256 indexed transferId, address indexed from, address indexed to, uint256 nonce);
+
     //-----------------------------STORAGE GETTERS-------------------------------
 
     function getCommitments(address user) external view returns (uint256, uint256) {
@@ -251,10 +257,17 @@ contract ConfidentialLedger {
         require(registered[_to], "Receiver not registered");
         requireValidPoint(_valueCommitment);
 
+        // Fetch and increment the nonce
+        uint256 currentNonce = nonces[msg.sender];
+        nonces[msg.sender]++;
+        
         transferId = nextTransferId++;
 
         pendingTransfers[transferId] =
             Transfer({from: msg.sender, to: _to, valueCommitment: _valueCommitment, proofBlob: _proof});
+
+        // Emit the event so the (trusted) rust verifier can catch this!
+        emit TransferSubmitted(transferId, msg.sender, _to, currentNonce);
     }
 
     //------------------------VERIFIER-APPROVED EXECUTION----------------------------
