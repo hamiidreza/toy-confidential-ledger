@@ -12,6 +12,7 @@ pub fn create_transfer_proof(
     r_transfer: Fr,
     v_balance: u64,
     r_balance: Fr,
+    nonce: u64,
     gens: &Vec<(C, C)>,
     key: &CommitmentKey,
     n: u8,
@@ -24,6 +25,7 @@ pub fn create_transfer_proof(
     let mut transcript = Transcript::new(b"ConfidentialLedger");
     transcript_append_u8(&mut transcript, b"from", from.as_bytes());
     transcript_append_u8(&mut transcript, b"to", to.as_bytes());
+    transcript_append_u64(&mut transcript, b"nonce", nonce);
     transcript_append_point(&mut transcript, b"value_commitment", &cm_v);
 
     // Generate proof
