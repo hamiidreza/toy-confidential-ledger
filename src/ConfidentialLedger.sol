@@ -63,6 +63,9 @@ contract ConfidentialLedger {
     /// @notice Emitted when a user submits a transfer for off-chain verification
     event TransferSubmitted(uint256 indexed transferId, address indexed from, address indexed to, uint256 nonce);
 
+    /// @notice Emitted when a transfer is approved
+    event TransferApproved(uint256 indexed transferId, address indexed from, address indexed to);
+
     //-----------------------------STORAGE GETTERS-------------------------------
 
     function getCommitments(address user) external view returns (uint256, uint256) {
@@ -260,7 +263,7 @@ contract ConfidentialLedger {
         // Fetch and increment the nonce
         uint256 currentNonce = nonces[msg.sender];
         nonces[msg.sender]++;
-        
+
         transferId = nextTransferId++;
 
         pendingTransfers[transferId] =
@@ -296,7 +299,4 @@ contract ConfidentialLedger {
         // Cleanup
         delete pendingTransfers[_transferId];
     }
-
-    /// @notice Emitted when a transfer is approved
-    event TransferApproved(uint256 indexed transferId, address indexed from, address indexed to);
 }
